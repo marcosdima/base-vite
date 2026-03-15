@@ -1,0 +1,216 @@
+export const resources = {
+  en: {
+    translation: {
+      nav: {
+        home: 'Home',
+        dashboard: 'Dashboard',
+        login: 'Log in',
+        signUp: 'Sign up',
+      },
+      layout: {
+        ready: 'Ready to ship',
+        primaryNavigation: 'Primary navigation',
+        logout: 'Log out',
+        languageSwitcher: 'Language switcher',
+      },
+      notFound: {
+        title: 'Page not found',
+        description: 'The route you requested does not exist in this starter.',
+        action: 'Go back home',
+      },
+      home: {
+        badge: 'Reusable Vite baseline',
+        title: 'Start new React projects without rebuilding the same foundation every time.',
+        description:
+          'This starter already includes routing, Redux Toolkit, RTK Query, i18n, motion animations, icons, and auth-ready screens.',
+        primaryAction: 'Create account',
+        secondaryAction: 'Open login',
+        stackTitle: 'Included stack',
+        stackItems: [
+          'React 19',
+          'React Router v7',
+          'Redux Toolkit',
+          'RTK Query',
+          'i18next',
+          'Motion',
+          'react-icons',
+          'Axios',
+        ],
+        featureCards: [
+          {
+            title: 'Application structure',
+            description: 'App shell, pages, features, services, and routing are already separated to scale cleanly.',
+          },
+          {
+            title: 'REST API workflow',
+            description: 'RTK Query mutations and queries are connected to an Axios client with auth header support.',
+          },
+          {
+            title: 'Bilingual UI',
+            description: 'English and Spanish strings are configured and the language toggle is already mounted.',
+          },
+          {
+            title: 'Auth baseline',
+            description: 'Log in, sign up, session persistence, and protected routes are ready for your backend.',
+          },
+        ],
+      },
+      auth: {
+        badge: 'Authentication template',
+        loginTitle: 'Welcome back',
+        loginSubtitle: 'Use your backend credentials to enter the protected dashboard.',
+        signUpTitle: 'Create your account',
+        signUpSubtitle: 'This form is wired to a REST endpoint and ready to adapt to your API.',
+        haveAccount: 'Already have an account?',
+        needAccount: 'Need an account?',
+        fields: {
+          name: 'Full name',
+          email: 'Email',
+          password: 'Password',
+          confirmPassword: 'Confirm password',
+        },
+        placeholders: {
+          name: 'Jane Doe',
+          email: 'jane@company.com',
+          password: 'Enter your password',
+          confirmPassword: 'Repeat your password',
+        },
+        actions: {
+          login: 'Log in',
+          createAccount: 'Create account',
+        },
+        success: {
+          accountCreated: 'Account created successfully. Please log in with your new credentials.',
+        },
+        errors: {
+          passwordMismatch: 'Passwords must match before sending the request.',
+          unexpectedResponse: 'The server returned an unexpected response.',
+        },
+      },
+      dashboard: {
+        badge: 'Protected route',
+        title: 'Dashboard connected to the store and API layer',
+        description:
+          'Use this page as the starting point for private modules that need authenticated data.',
+        name: 'Current user',
+        email: 'Email',
+        fallbackUser: 'Authenticated user',
+        fallbackEmail: 'No email returned yet',
+        apiCardTitle: 'REST base URL',
+        apiCardDescription: 'Change this value through VITE_API_URL to point the starter to your backend.',
+        sessionCardTitle: 'Session token',
+        sessionCardDescription: 'The token is persisted in localStorage and attached automatically to requests.',
+        profileRequestFailed: 'The profile request failed. Check your endpoint or token.',
+        refresh: 'Refresh profile',
+        refreshing: 'Refreshing...',
+      },
+    },
+  },
+  es: {
+    translation: {
+      nav: {
+        home: 'Inicio',
+        dashboard: 'Panel',
+        login: 'Ingresar',
+        signUp: 'Crear cuenta',
+      },
+      layout: {
+        ready: 'Listo para usar',
+        primaryNavigation: 'Navegación principal',
+        logout: 'Salir',
+        languageSwitcher: 'Selector de idioma',
+      },
+      notFound: {
+        title: 'Página no encontrada',
+        description: 'La ruta que pediste no existe dentro de esta plantilla.',
+        action: 'Volver al inicio',
+      },
+      home: {
+        badge: 'Base reutilizable en Vite',
+        title: 'Empezá proyectos React nuevos sin reconstruir siempre la misma base.',
+        description:
+          'Esta plantilla ya trae rutas, Redux Toolkit, RTK Query, internacionalización, motion, iconos y pantallas de autenticación.',
+        primaryAction: 'Crear cuenta',
+        secondaryAction: 'Abrir login',
+        stackTitle: 'Stack incluido',
+        stackItems: [
+          'React 19',
+          'React Router v7',
+          'Redux Toolkit',
+          'RTK Query',
+          'i18next',
+          'Motion',
+          'react-icons',
+          'Axios',
+        ],
+        featureCards: [
+          {
+            title: 'Estructura de aplicación',
+            description: 'La app ya separa layout, páginas, features, servicios y rutas para escalar ordenada.',
+          },
+          {
+            title: 'Flujo REST API',
+            description: 'Las queries y mutations de RTK Query usan un cliente Axios con soporte para token.',
+          },
+          {
+            title: 'Interfaz bilingüe',
+            description: 'Quedan configurados inglés y español, y el selector de idioma ya está montado.',
+          },
+          {
+            title: 'Base de autenticación',
+            description: 'Login, registro, persistencia de sesión y rutas protegidas quedan listas para tu backend.',
+          },
+        ],
+      },
+      auth: {
+        badge: 'Plantilla de autenticación',
+        loginTitle: 'Bienvenido otra vez',
+        loginSubtitle: 'Usá las credenciales de tu backend para entrar al panel protegido.',
+        signUpTitle: 'Creá tu cuenta',
+        signUpSubtitle: 'Este formulario ya está conectado a un endpoint REST y listo para adaptar a tu API.',
+        haveAccount: '¿Ya tenés cuenta?',
+        needAccount: '¿Necesitás una cuenta?',
+        fields: {
+          name: 'Nombre completo',
+          email: 'Correo',
+          password: 'Contraseña',
+          confirmPassword: 'Confirmar contraseña',
+        },
+        placeholders: {
+          name: 'Juana Pérez',
+          email: 'juana@empresa.com',
+          password: 'Ingresá tu contraseña',
+          confirmPassword: 'Repetí tu contraseña',
+        },
+        actions: {
+          login: 'Ingresar',
+          createAccount: 'Crear cuenta',
+        },
+        success: {
+          accountCreated: 'La cuenta se creó correctamente. Ahora ingresá con tus credenciales nuevas.',
+        },
+        errors: {
+          passwordMismatch: 'Las contraseñas deben coincidir antes de enviar la solicitud.',
+          unexpectedResponse: 'El servidor devolvió una respuesta inesperada.',
+        },
+      },
+      dashboard: {
+        badge: 'Ruta protegida',
+        title: 'Panel conectado al store y a la capa de API',
+        description:
+          'Usá esta página como punto de partida para módulos privados que necesiten datos autenticados.',
+        name: 'Usuario actual',
+        email: 'Correo',
+        fallbackUser: 'Usuario autenticado',
+        fallbackEmail: 'Todavía no se devolvió un correo',
+        apiCardTitle: 'URL base REST',
+        apiCardDescription: 'Cambiá este valor usando VITE_API_URL para apuntar la plantilla a tu backend.',
+        sessionCardTitle: 'Token de sesión',
+        sessionCardDescription: 'El token se persiste en localStorage y se adjunta automáticamente a cada request.',
+        profileRequestFailed: 'Falló la consulta del perfil. Revisá tu endpoint o el token.',
+        refresh: 'Actualizar perfil',
+        refreshing: 'Actualizando...',
+      },
+    },
+  },
+}
