@@ -1,5 +1,7 @@
 import { useSelector } from 'react-redux'
 import { selectAuthToken, selectAuthUser } from '../features/auth/authSlice'
+import { useGetProfileQuery } from '../services/authApi'
+import { useTranslation } from 'react-i18next'
 import {
   Card,
   CardNote,
@@ -12,28 +14,23 @@ import {
 
 
 export function DashboardPage() {
+  const { t } = useTranslation()
   const authUser = useSelector(selectAuthUser)
   const authToken = useSelector(selectAuthToken)
+
+  useGetProfileQuery(undefined, { skip: !authToken })
+
+  const username = authUser?.username ?? authUser?.name ?? t('dashboard.greetingFallback')
 
   return (
     <Page>
       <Card>
-        <CardTitle>Dashboard</CardTitle>
-        <CardNote>Protected route — connected to the Redux store.</CardNote>
+        <CardTitle>{t('dashboard.greeting', { username })}</CardTitle>
+        <CardNote>{t('dashboard.baseDescription')}</CardNote>
 
         <InfoRow>
-          <Label>Name</Label>
-          <Value>{authUser?.name ?? '—'}</Value>
-        </InfoRow>
-
-        <InfoRow>
-          <Label>Email</Label>
-          <Value>{authUser?.email ?? '—'}</Value>
-        </InfoRow>
-
-        <InfoRow>
-          <Label>Token</Label>
-          <Value>{authToken ? `${authToken.slice(0, 20)}…` : 'No token'}</Value>
+          <Label>{t('dashboard.sessionTokenLabel')}</Label>
+          <Value>{authToken ? `${authToken.slice(0, 20)}…` : t('dashboard.noToken')}</Value>
         </InfoRow>
       </Card>
     </Page>

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
-import { FiArrowRight, FiLoader, FiLock, FiMail, FiUser } from 'react-icons/fi'
+import { FiArrowRight, FiLoader, FiLock, FiUser } from 'react-icons/fi'
 import { useTranslation } from 'react-i18next'
 import { useDispatch } from 'react-redux'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { setCredentials } from '../../features/auth/authSlice'
-import { useSignInMutation, useSignUpMutation } from '../../services/authApi'
+import { useLoginMutation, useSignInMutation } from '../../services/authApi'
 import {
   Card,
   CardEyebrow,
@@ -21,8 +21,7 @@ import {
 } from '../../styles/components/authFormCard.styles'
 
 const initialFormState = {
-  name: '',
-  email: '',
+  username: '',
   password: '',
   confirmPassword: '',
 }
@@ -46,11 +45,11 @@ export function AuthFormCard({ mode, notice = '' }) {
   const [formState, setFormState] = useState(initialFormState)
   const [feedbackMessage, setFeedbackMessage] = useState(notice)
   const [feedbackType, setFeedbackType] = useState(notice ? 'success' : 'neutral')
+  const [login, loginResult] = useLoginMutation()
   const [signIn, signInResult] = useSignInMutation()
-  const [signUp, signUpResult] = useSignUpMutation()
 
-  const isSignUp = mode === 'sign-up'
-  const isLoading = signInResult.isLoading || signUpResult.isLoading
+  const isSignIn = mode === 'signin'
+  const isLoading = loginResult.isLoading || signInResult.isLoading
   const redirectTo = location.state?.redirectTo ?? '/dashboard'
 
   useEffect(() => {
@@ -75,17 +74,16 @@ export function AuthFormCard({ mode, notice = '' }) {
     setFeedbackMessage('')
     setFeedbackType('neutral')
 
-    if (isSignUp && formState.password !== formState.confirmPassword) {
+    if (isSignIn && formState.password !== formState.confirmPassword) {
       setFeedbackType('error')
       setFeedbackMessage(t('auth.errors.passwordMismatch'))
       return
     }
 
     try {
-      if (isSignUp) {
-        const result = await signUp({
-          name: formState.name,
-          email: formState.email,
+      if (isSignIn) {
+        const result = await signIn({
+          username: formState.username,
           password: formState.password,
         }).unwrap()
 
@@ -102,8 +100,8 @@ export function AuthFormCard({ mode, notice = '' }) {
         return
       }
 
-      const result = await signIn({
-        email: formState.email,
+      const result = await login({
+        username: formState.username,
         password: formState.password,
       }).unwrap()
 
@@ -117,11 +115,11 @@ export function AuthFormCard({ mode, notice = '' }) {
     }
   }
 
-  const title = isSignUp ? t('auth.signUpTitle') : t('auth.loginTitle')
-  const subtitle = isSignUp ? t('auth.signUpSubtitle') : t('auth.loginSubtitle')
-  const alternatePath = isSignUp ? '/login' : '/sign-up'
-  const alternateLabel = isSignUp ? t('auth.haveAccount') : t('auth.needAccount')
-  const alternateAction = isSignUp ? t('nav.login') : t('nav.signUp')
+  const title = isSignIn ? t('auth.signInTitle') : t('auth.loginTitle')
+  const subtitle = isSignIn ? t('auth.signInSubtitle') : t('auth.loginSubtitle')
+  const alternatePath = isSignIn ? '/login' : '/signin'
+  const alternateLabel = isSignIn ? t('auth.haveAccount') : t('auth.needAccount')
+  const alternateAction = isSignIn ? t('nav.login') : t('nav.signIn')
 
   return (
     <Card
@@ -136,57 +134,23 @@ export function AuthFormCard({ mode, notice = '' }) {
       </Header>
 
       <Form onSubmit={handleSubmit}>
-        {isSignUp ? (
-          <FieldLabel>
-            <span>{t('auth.fields.name')}</span>
-            <FieldInput>
-              <FiUser />
-              <input
-                type="text"
-                name="name"
-                placeholder={t('auth.placeholders.name')}
-                value={formState.name}
-                onChange={handleChange}
-                autoComplete="name"
-                required
-              />
-            </FieldInput>
-          </FieldLabel>
-        ) : null}
-
         <FieldLabel>
-          <span>{t('auth.fields.email')}</span>
+          <span>{t('auth.fields.username')}</span>
           <FieldInput>
-            <FiMail />
+            <FiUser />
             <input
-              type="email"
-              name="email"
-              placeholder={t('auth.placeholders.email')}
-              value={formState.email}
+              type="text"
+              name="username"
+              placeholder={t('auth.placeholders.username')}
+              value={formState.username}
               onChange={handleChange}
-              autoComplete="email"
+              autoComplete="username"
               required
             />
           </FieldInput>
         </FieldLabel>
 
-        <FieldLabel>
-          <span>{t('auth.fields.password')}</span>
-          <FieldInput>
-            <FiLock />
-            <input
-              type="password"
-              name="password"
-              placeholder={t('auth.placeholders.password')}
-              value={formState.password}
-              onChange={handleChange}
-              autoComplete={isSignUp ? 'new-password' : 'current-password'}
-              required
-            />
-          </FieldInput>
-        </FieldLabel>
-
-        {isSignUp ? (
+        {isSignIn ? (
           <FieldLabel>
             <span>{t('auth.fields.confirmPassword')}</span>
             <FieldInput>
@@ -204,6 +168,22 @@ export function AuthFormCard({ mode, notice = '' }) {
           </FieldLabel>
         ) : null}
 
+        <FieldLabel>
+          <span>{t('auth.fields.password')}</span>
+          <FieldInput>
+            <FiLock />
+            <input
+              type="password"
+              name="password"
+              placeholder={t('auth.placeholders.password')}
+              value={formState.password}
+              onChange={handleChange}
+              autoComplete={isSignIn ? 'new-password' : 'current-password'}
+              required
+            />
+          </FieldInput>
+        </FieldLabel>
+
         {feedbackMessage ? (
           <Feedback $type={feedbackType}>{feedbackMessage}</Feedback>
         ) : null}
@@ -211,7 +191,7 @@ export function AuthFormCard({ mode, notice = '' }) {
         <SubmitButton type="submit" disabled={isLoading}>
           {isLoading ? <Spin><FiLoader /></Spin> : <FiArrowRight />}
           <span>
-            {isSignUp ? t('auth.actions.createAccount') : t('auth.actions.login')}
+            {isSignIn ? t('auth.actions.createAccount') : t('auth.actions.login')}
           </span>
         </SubmitButton>
       </Form>

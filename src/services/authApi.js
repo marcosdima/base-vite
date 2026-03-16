@@ -2,19 +2,53 @@ import { createApi } from '@reduxjs/toolkit/query/react'
 import { logout, setUser } from '../features/auth/authSlice'
 import { httpClient } from './httpClient'
 
+
+function normalizeUserPayload(payload) {
+  if (!payload) {
+    return null
+  }
+
+  if (payload.user) {
+    return payload.user
+  }
+
+  if (payload.profile) {
+    return payload.profile
+  }
+
+  if (payload.data?.user) {
+    return payload.data.user
+  }
+
+  if (payload.data && typeof payload.data === 'object' && !Array.isArray(payload.data)) {
+    return payload.data
+  }
+
+  if (payload.username || payload.name || payload.email || payload.id || payload._id) {
+    return {
+      id: payload.id ?? payload._id ?? null,
+      username: payload.username ?? payload.userName ?? null,
+      name: payload.name ?? null,
+      email: payload.email ?? null,
+    }
+  }
+
+  return null
+}
+
 function normalizeAuthResponse(response) {
   const payload = response?.data ?? response
 
   return {
     token: payload?.token ?? payload?.accessToken ?? payload?.jwt ?? null,
-    user: payload?.user ?? payload?.profile ?? payload?.data?.user ?? payload?.data ?? null,
+    user: normalizeUserPayload(payload),
   }
 }
 
 
 function normalizeProfileResponse(response) {
   const payload = response?.data ?? response
-  return payload?.user ?? payload?.profile ?? payload?.data ?? payload ?? null
+  return normalizeUserPayload(payload)
 }
 
 
@@ -50,18 +84,18 @@ export const authApi = createApi({
   baseQuery: axiosBaseQuery(),
   tagTypes: ['Auth'],
   endpoints: (builder) => ({
-    signIn: builder.mutation({
+    login: builder.mutation({
       query: (credentials) => ({
-        url: '/auth/login',
+        url: '/users/login',
         method: 'POST',
         data: credentials,
       }),
       transformResponse: normalizeAuthResponse,
       invalidatesTags: ['Auth'],
     }),
-    signUp: builder.mutation({
+    signIn: builder.mutation({
       query: (payload) => ({
-        url: '/auth/register',
+        url: '/users/signin',
         method: 'POST',
         data: payload,
       }),
@@ -70,7 +104,7 @@ export const authApi = createApi({
     }),
     getProfile: builder.query({
       query: () => ({
-        url: '/auth/me',
+        url: '/users/me',
       }),
       transformResponse: (response) => ({
         user: normalizeProfileResponse(response),
@@ -94,6 +128,6 @@ export const authApi = createApi({
 
 export const {
   useGetProfileQuery,
+  useLoginMutation,
   useSignInMutation,
-  useSignUpMutation,
 } = authApi

@@ -1,7 +1,6 @@
 import axios from 'axios'
 import { getStoredToken } from '../features/auth/authStorage'
-
-export const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api'
+import { API_BASE_URL } from '../utils/config'
 
 export const httpClient = axios.create({
   baseURL: API_BASE_URL,

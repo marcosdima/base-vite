@@ -31,7 +31,7 @@ export function AppShell() {
     ? []
     : [
         { to: '/login', label: t('nav.login'), icon: <FiLogIn /> },
-        { to: '/sign-up', label: t('nav.signUp'), icon: <FiUserPlus /> },
+        { to: '/signin', label: t('nav.signIn'), icon: <FiUserPlus /> },
       ]
 
   return (
@@ -41,7 +41,7 @@ export function AppShell() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
-        <Brand>App</Brand>
+        <Brand>{t('layout.brand')}</Brand>
 
         <Controls>
           <Nav aria-label={t('layout.primaryNavigation')}>
@@ -67,7 +67,7 @@ export function AppShell() {
               <FiLogOut />
               <span>
                 {t('layout.logout')}
-                {authUser?.name ? ` · ${authUser.name}` : ''}
+                {authUser?.username || authUser?.name ? ` · ${authUser?.username ?? authUser?.name}` : ''}
               </span>
             </GhostButton>
           ) : null}

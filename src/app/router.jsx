@@ -5,7 +5,7 @@ import { DashboardPage } from '../pages/DashboardPage'
 import { HomePage } from '../pages/HomePage'
 import { LoginPage } from '../pages/LoginPage'
 import { NotFoundPage } from '../pages/NotFoundPage'
-import { SignUpPage } from '../pages/SignUpPage'
+import { SignInPage } from '../pages/SignInPage'
 
 export const router = createBrowserRouter([
   {
@@ -21,8 +21,8 @@ export const router = createBrowserRouter([
         element: <LoginPage />,
       },
       {
-        path: 'sign-up',
-        element: <SignUpPage />,
+        path: 'signin',
+        element: <SignInPage />,
       },
       {
         path: 'dashboard',
