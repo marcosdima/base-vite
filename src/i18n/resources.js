@@ -96,6 +96,10 @@ export const resources = {
         baseDescription: 'This dashboard is the base display area for testing and mounting upcoming features.',
         sessionTokenLabel: 'Session token',
         noToken: 'No token',
+        showcaseTitle: 'Features',
+        showcase: {
+          theme: 'Theme',
+        },
         description:
           'Use this page as the starting point for private modules that need authenticated data.',
         name: 'Current user',
@@ -207,6 +211,10 @@ export const resources = {
         baseDescription: 'Este dashboard es la base para probar e ir montando las próximas features.',
         sessionTokenLabel: 'Token de sesión',
         noToken: 'Sin token',
+        showcaseTitle: 'Features',
+        showcase: {
+          theme: 'Tema',
+        },
         description:
           'Usá esta página como punto de partida para módulos privados que necesiten datos autenticados.',
         name: 'Usuario actual',

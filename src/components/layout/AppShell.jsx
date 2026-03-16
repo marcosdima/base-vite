@@ -12,7 +12,8 @@ import {
   StyledNavLink,
   Topbar,
 } from '../../styles/components/appShell.styles'
-import { LanguageSwitcher } from '../ui/LanguageSwitcher'
+import { LanguageSwitcher } from '../features/switchs/LanguageSwitcher'
+import { ThemeChanger } from '../features/switchs/ThemeChanger'
 
 
 export function AppShell() {
@@ -61,6 +62,7 @@ export function AppShell() {
           </Nav>
 
           <LanguageSwitcher />
+          <ThemeChanger />
 
           {isAuthenticated ? (
             <GhostButton type="button" onClick={() => dispatch(logout())}>

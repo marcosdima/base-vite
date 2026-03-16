@@ -4,7 +4,7 @@ import {
   GlobeIcon,
   LangButton,
   Wrapper,
-} from '../../styles/components/languageSwitcher.styles'
+} from '../../../styles/components/languageSwitcher.styles'
 
 const languages = [
   { code: 'en', label: 'EN' },

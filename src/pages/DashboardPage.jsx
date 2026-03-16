@@ -2,6 +2,7 @@ import { useSelector } from 'react-redux'
 import { selectAuthToken, selectAuthUser } from '../features/auth/authSlice'
 import { useGetProfileQuery } from '../services/authApi'
 import { useTranslation } from 'react-i18next'
+import { FeatureShowcase } from '../components/features/FeatureShowcase'
 import {
   Card,
   CardNote,
@@ -33,6 +34,8 @@ export function DashboardPage() {
           <Value>{authToken ? `${authToken.slice(0, 20)}…` : t('dashboard.noToken')}</Value>
         </InfoRow>
       </Card>
+
+      <FeatureShowcase />
     </Page>
   )
 }

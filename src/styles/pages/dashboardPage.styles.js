@@ -3,7 +3,9 @@ import { Caption, Paragraph, SectionTitle } from '../typography'
 
 export const Page = styled.section`
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
   padding: 40px 0;
 `
 

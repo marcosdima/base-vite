@@ -28,7 +28,6 @@ export const GlobalStyles = createGlobalStyle`
       radial-gradient(circle at top, rgba(37, 99, 235, 0.12), transparent 30%),
       ${({ theme }) => theme.colors.background};
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
   }
 
   #app {
