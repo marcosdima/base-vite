@@ -1,4 +1,11 @@
-export const resources = {
+type Translation = Record<string, any>;
+
+export interface Resources {
+  en: { translation: Translation };
+  es: { translation: Translation };
+}
+
+export const resources: Resources = {
   en: {
     translation: {
       nav: {
@@ -93,25 +100,25 @@ export const resources = {
         title: 'Dashboard connected to the store and API layer',
         greeting: 'Hi, {{username}}!',
         greetingFallback: 'there',
-        baseDescription: 'This dashboard is the base display area for testing and mounting upcoming features.',
+        baseDescription: 'This dashboard is the base for testing and mounting the next features.',
         sessionTokenLabel: 'Session token',
         noToken: 'No token',
         showcaseTitle: 'Features',
         showcase: {
           theme: 'Theme',
           poll: 'Poll',
-          groupInput: 'Group input',
+          groupInput: 'Grouped input',
         },
         pollExample: {
           question: 'Which feature should we build next?',
-          optionA: 'Reporting dashboard',
+          optionA: 'Reports dashboard',
           optionB: 'Real-time notifications',
           optionC: 'Export to CSV',
           close: 'Close poll',
           reset: 'Reset votes',
         },
         groupInput: {
-          hint: 'Drag keys from one group to the other.',
+          hint: 'Drag keys from one group to another.',
           empty: 'No keys in this group.',
           defaultGroupA: 'Group A',
           defaultGroupB: 'Group B',
@@ -119,14 +126,14 @@ export const resources = {
           groupBAria: 'Group B name',
         },
         description:
-          'Use this page as the starting point for private modules that need authenticated data.',
+          'Use this page as a starting point for private modules that need authenticated data.',
         name: 'Current user',
         fallbackUser: 'Authenticated user',
         apiCardTitle: 'REST base URL',
-        apiCardDescription: 'Change this value through VITE_API_URL to point the starter to your backend.',
+        apiCardDescription: 'Change this value using VITE_API_URL to point the template to your backend.',
         sessionCardTitle: 'Session token',
-        sessionCardDescription: 'The token is persisted in localStorage and attached automatically to requests.',
-        profileRequestFailed: 'The profile request failed. Check your endpoint or token.',
+        sessionCardDescription: 'The token is persisted in localStorage and attached automatically to every request.',
+        profileRequestFailed: 'Failed to fetch profile. Check your endpoint or token.',
         refresh: 'Refresh profile',
         refreshing: 'Refreshing...',
       },
@@ -142,21 +149,21 @@ export const resources = {
       },
       layout: {
         brand: 'App',
-        ready: 'Listo para usar',
+        ready: 'Listo para enviar',
         primaryNavigation: 'Navegación principal',
-        logout: 'Salir',
-        languageSwitcher: 'Selector de idioma',
+        logout: 'Cerrar sesión',
+        languageSwitcher: 'Cambiar idioma',
       },
       notFound: {
         title: 'Página no encontrada',
-        description: 'La ruta que pediste no existe dentro de esta plantilla.',
+        description: 'La ruta que solicitaste no existe en este starter.',
         action: 'Volver al inicio',
       },
       home: {
-        badge: 'Base reutilizable en Vite',
-        title: 'Empezá proyectos React nuevos sin reconstruir siempre la misma base.',
+        badge: 'Base reutilizable de Vite',
+        title: 'Empezá nuevos proyectos React sin reconstruir la misma base cada vez.',
         description:
-          'Esta plantilla ya trae rutas, Redux Toolkit, RTK Query, internacionalización, motion, iconos y pantallas de autenticación.',
+          'Este starter ya incluye routing, Redux Toolkit, RTK Query, i18n, animaciones de Motion, iconos y pantallas de auth listas.',
         primaryAction: 'Crear cuenta',
         secondaryAction: 'Abrir login',
         stackTitle: 'Stack incluido',
@@ -173,19 +180,19 @@ export const resources = {
         featureCards: [
           {
             title: 'Estructura de aplicación',
-            description: 'La app ya separa layout, páginas, features, servicios y rutas para escalar ordenada.',
+            description: 'App shell, páginas, features, servicios y routing ya están separados para escalar limpiamente.',
           },
           {
-            title: 'Flujo REST API',
-            description: 'Las queries y mutations de RTK Query usan un cliente Axios con soporte para token.',
+            title: 'Flujo de API REST',
+            description: 'Las mutaciones y consultas de RTK Query están conectadas a un cliente Axios con soporte de headers de auth.',
           },
           {
-            title: 'Interfaz bilingüe',
-            description: 'Quedan configurados inglés y español, y el selector de idioma ya está montado.',
+            title: 'UI bilingüe',
+            description: 'Inglés y español configurados, y el selector de idioma ya está montado.',
           },
           {
             title: 'Base de autenticación',
-            description: 'Login, registro, persistencia de sesión y rutas protegidas quedan listas para tu backend.',
+            description: 'Login, registro, persistencia de sesión y rutas protegidas listas para tu backend.',
           },
         ],
         simpleTitle: 'Inicio',
@@ -236,7 +243,7 @@ export const resources = {
           groupInput: 'Input agrupado',
         },
         pollExample: {
-          question: 'Que feature deberiamos construir ahora?',
+          question: 'Qué feature deberíamos construir ahora?',
           optionA: 'Dashboard de reportes',
           optionB: 'Notificaciones en tiempo real',
           optionC: 'Exportar a CSV',
@@ -264,5 +271,5 @@ export const resources = {
         refreshing: 'Actualizando...',
       },
     },
-  },
+  }
 }
