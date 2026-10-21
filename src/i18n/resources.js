@@ -99,6 +99,24 @@ export const resources = {
         showcaseTitle: 'Features',
         showcase: {
           theme: 'Theme',
+          poll: 'Poll',
+          groupInput: 'Group input',
+        },
+        pollExample: {
+          question: 'Which feature should we build next?',
+          optionA: 'Reporting dashboard',
+          optionB: 'Real-time notifications',
+          optionC: 'Export to CSV',
+          close: 'Close poll',
+          reset: 'Reset votes',
+        },
+        groupInput: {
+          hint: 'Drag keys from one group to the other.',
+          empty: 'No keys in this group.',
+          defaultGroupA: 'Group A',
+          defaultGroupB: 'Group B',
+          groupAAria: 'Group A name',
+          groupBAria: 'Group B name',
         },
         description:
           'Use this page as the starting point for private modules that need authenticated data.',
@@ -214,6 +232,24 @@ export const resources = {
         showcaseTitle: 'Features',
         showcase: {
           theme: 'Tema',
+          poll: 'Encuesta',
+          groupInput: 'Input agrupado',
+        },
+        pollExample: {
+          question: 'Que feature deberiamos construir ahora?',
+          optionA: 'Dashboard de reportes',
+          optionB: 'Notificaciones en tiempo real',
+          optionC: 'Exportar a CSV',
+          close: 'Cerrar encuesta',
+          reset: 'Reiniciar votos',
+        },
+        groupInput: {
+          hint: 'Arrastrá claves de un grupo al otro.',
+          empty: 'No hay claves en este grupo.',
+          defaultGroupA: 'Grupo A',
+          defaultGroupB: 'Grupo B',
+          groupAAria: 'Nombre del grupo A',
+          groupBAria: 'Nombre del grupo B',
         },
         description:
           'Usá esta página como punto de partida para módulos privados que necesiten datos autenticados.',

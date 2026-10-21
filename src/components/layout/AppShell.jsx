@@ -12,8 +12,8 @@ import {
   StyledNavLink,
   Topbar,
 } from '../../styles/components/appShell.styles'
-import { LanguageSwitcher } from '../features/switchs/LanguageSwitcher'
-import { ThemeChanger } from '../features/switchs/ThemeChanger'
+import { LanguageSwitcher } from '../features/switches/LanguageSwitcher'
+import { ThemeChanger } from '../features/switches/ThemeChanger'
 
 
 export function AppShell() {

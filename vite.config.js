@@ -13,6 +13,9 @@ export default defineConfig(({ mode }) => {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
       },
     },
+    define: {
+      __APP_ENV__: JSON.stringify(env),
+    },
     server: {
       proxy: {
         '/api': {
@@ -21,6 +24,9 @@ export default defineConfig(({ mode }) => {
           secure: false,
         },
       },
+    },
+    build: {
+      chunkSizeWarningLimit: 600,
     },
   }
 })

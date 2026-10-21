@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { FiArrowRight, FiLoader, FiLock, FiUser } from 'react-icons/fi'
 import { useTranslation } from 'react-i18next'
 import { useDispatch } from 'react-redux'
@@ -51,11 +51,6 @@ export function AuthFormCard({ mode, notice = '' }) {
   const isSignIn = mode === 'signin'
   const isLoading = loginResult.isLoading || signInResult.isLoading
   const redirectTo = location.state?.redirectTo ?? '/dashboard'
-
-  useEffect(() => {
-    setFeedbackMessage(notice)
-    setFeedbackType(notice ? 'success' : 'neutral')
-  }, [notice])
 
   function handleChange(event) {
     const { name, value } = event.target

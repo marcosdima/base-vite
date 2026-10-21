@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next'
-import { ThemeChanger } from './switchs/ThemeChanger'
+import { GroupInputBoard } from './inputs/groups/GroupInputBoard'
+import { PollDemo } from './inputs/poll/PollDemo'
+import { ThemeChanger } from './switches/ThemeChanger'
 import {
   FeatureCard,
   FeatureLabel,
@@ -20,6 +22,16 @@ export function FeatureShowcase() {
         <FeatureCard>
           <FeatureLabel>{t('dashboard.showcase.theme')}</FeatureLabel>
           <ThemeChanger />
+        </FeatureCard>
+
+        <FeatureCard>
+          <FeatureLabel>{t('dashboard.showcase.poll')}</FeatureLabel>
+          <PollDemo />
+        </FeatureCard>
+
+        <FeatureCard style={{ gridColumn: '1 / -1' }}>
+          <FeatureLabel>{t('dashboard.showcase.groupInput')}</FeatureLabel>
+          <GroupInputBoard />
         </FeatureCard>
       </ShowcaseGrid>
     </ShowcaseWrapper>
