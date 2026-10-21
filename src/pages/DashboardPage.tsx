@@ -2,9 +2,7 @@ import { useSelector } from 'react-redux';
 import { selectAuthToken, selectAuthUser } from '../features/auth/authSlice';
 import { useGetProfileQuery } from '../services/authApi';
 import { useTranslation } from 'react-i18next';
-// @ts-ignore - FeatureShowcase.jsx will be migrated to TypeScript in a later phase
 import { FeatureShowcase } from '../components/features/FeatureShowcase';
-// @ts-ignore - dashboardPage.styles.js will be migrated to TypeScript in a later phase
 import {
   Card,
   CardNote,

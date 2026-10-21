@@ -1,4 +1,5 @@
 import { createApi } from '@reduxjs/toolkit/query/react';
+import type { BaseQueryApi } from '@reduxjs/toolkit/query';
 import { logout, setUser } from '../features/auth/authSlice';
 import { httpClient } from './httpClient';
 
@@ -18,59 +19,109 @@ interface ProfileResponse {
   user: UserPayload | null;
 }
 
-function normalizeUserPayload(payload: any): UserPayload | null {
-  if (!payload) {
+/** Respuesta cruda del backend: la forma todavía no está garantizada. */
+type UnknownPayload = Record<string, unknown>;
+
+function isRecord(value: unknown): value is UnknownPayload {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function readString(value: unknown): string | null {
+  return typeof value === 'string' ? value : null;
+}
+
+/**
+ * Lee un identificador o texto que el backend podría enviar como número.
+ * Se convierte a `string` para respetar el contrato `string | null` sin
+ * descartar el valor original.
+ */
+function readText(value: unknown): string | null {
+  if (typeof value === 'string') {
+    return value;
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value);
+  }
+
+  return null;
+}
+
+function readNumber(value: unknown): number | null {
+  return typeof value === 'number' ? value : null;
+}
+
+function normalizeUserPayload(payload: unknown): UserPayload | null {
+  if (!isRecord(payload)) {
     return null;
   }
 
-  if (payload.user) {
-    return payload.user;
+  if (isRecord(payload.user)) {
+    return payload.user as unknown as UserPayload;
   }
 
-  if (payload.profile) {
-    return payload.profile;
+  if (isRecord(payload.profile)) {
+    return payload.profile as unknown as UserPayload;
   }
 
-  if (payload.data?.user) {
-    return payload.data.user;
-  }
+  const data = payload.data;
 
-  if (payload.data && typeof payload.data === 'object' && !Array.isArray(payload.data)) {
-    return payload.data;
+  if (isRecord(data)) {
+    if (isRecord(data.user)) {
+      return data.user as unknown as UserPayload;
+    }
+
+    return data as unknown as UserPayload;
   }
 
   if (payload.username || payload.name || payload.email || payload.id || payload._id) {
     return {
-      id: payload.id ?? payload._id ?? null,
-      username: payload.username ?? payload.userName ?? null,
-      name: payload.name ?? null,
-      email: payload.email ?? null,
+      id: readText(payload.id) ?? readText(payload._id) ?? null,
+      username: readText(payload.username) ?? readText(payload.userName) ?? null,
+      name: readText(payload.name) ?? null,
+      email: readText(payload.email) ?? null,
     };
   }
 
   return null;
 }
 
-function normalizeAuthResponse(response: any): AuthResponse {
-  const payload = response?.data ?? response;
+function unwrapData(response: unknown): unknown {
+  if (isRecord(response)) {
+    return response.data ?? response;
+  }
+
+  return response;
+}
+
+function normalizeAuthResponse(response: unknown): AuthResponse {
+  const payload = unwrapData(response);
+
+  if (!isRecord(payload)) {
+    return { token: null, user: null };
+  }
 
   return {
-    token: payload?.token ?? payload?.accessToken ?? payload?.jwt ?? null,
+    token:
+      readText(payload.token) ?? readText(payload.accessToken) ?? readText(payload.jwt) ?? null,
     user: normalizeUserPayload(payload),
   };
 }
 
-function normalizeProfileResponse(response: any): ProfileResponse {
-  const payload = response?.data ?? response;
+function normalizeProfileResponse(response: unknown): ProfileResponse {
   return {
-    user: normalizeUserPayload(payload),
+    user: normalizeUserPayload(unwrapData(response)),
   };
 }
 
-const axiosBaseQuery = () => async (
-  args: { url: string; method?: string; data?: any; params?: any },
-  api: any
-) => {
+interface BaseQueryArgs {
+  url: string;
+  method?: string;
+  data?: unknown;
+  params?: unknown;
+}
+
+const axiosBaseQuery = () => async (args: BaseQueryArgs, api: BaseQueryApi) => {
   try {
     const response = await httpClient({
       url: args.url,
@@ -80,9 +131,11 @@ const axiosBaseQuery = () => async (
     });
 
     return { data: response.data };
-  } catch (error: any) {
-    const status = error.response?.status ?? 500;
-    const responseData = error.response?.data ?? { message: error.message };
+  } catch (error: unknown) {
+    const details = isRecord(error) ? error : {};
+    const responseDetails = isRecord(details.response) ? details.response : {};
+    const status = readNumber(responseDetails.status) ?? 500;
+    const responseData = responseDetails.data ?? { message: readString(details.message) };
 
     if (status === 401) {
       api.dispatch(logout());
@@ -111,7 +164,10 @@ export const authApi = createApi({
       transformResponse: normalizeAuthResponse,
       invalidatesTags: ['Auth'],
     }),
-    signIn: builder.mutation<AuthResponse, { username: string; password: string; confirmPassword: string }>({
+    signIn: builder.mutation<
+      AuthResponse,
+      { username: string; password: string; confirmPassword: string }
+    >({
       query: (payload) => ({
         url: '/users/signin',
         method: 'POST',
@@ -124,11 +180,11 @@ export const authApi = createApi({
       query: () => ({
         url: '/users/me',
       }),
-      transformResponse: (response: any) => ({
+      transformResponse: (response: unknown) => ({
         user: normalizeProfileResponse(response).user,
       }),
       providesTags: ['Auth'],
-      async onQueryStarted(_arg: unknown, { dispatch, queryFulfilled }: any) {
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
 
@@ -143,10 +199,6 @@ export const authApi = createApi({
   }),
 });
 
-export const {
-  useGetProfileQuery,
-  useLoginMutation,
-  useSignInMutation,
-} = authApi;
+export const { useGetProfileQuery, useLoginMutation, useSignInMutation } = authApi;
 
 export type { AuthResponse, ProfileResponse, UserPayload };

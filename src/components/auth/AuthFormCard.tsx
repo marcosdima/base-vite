@@ -33,8 +33,8 @@ function getErrorMessage(error: unknown, fallbackMessage: string): string {
 
   const err = error as Record<string, unknown>;
   return (
-    (err.data as Record<string, unknown>)?.message as string ??
-    (err.data as Record<string, unknown>)?.error as string ??
+    ((err.data as Record<string, unknown>)?.message as string) ??
+    ((err.data as Record<string, unknown>)?.error as string) ??
     (err.message as string) ??
     fallbackMessage
   );
@@ -178,15 +178,17 @@ export function AuthFormCard({ mode, notice = '' }: AuthFormCardProps) {
           </FieldInput>
         </FieldLabel>
 
-        {feedbackMessage ? (
-          <Feedback $type={feedbackType}>{feedbackMessage}</Feedback>
-        ) : null}
+        {feedbackMessage ? <Feedback $type={feedbackType}>{feedbackMessage}</Feedback> : null}
 
         <SubmitButton type="submit" disabled={isLoading}>
-          {isLoading ? <Spin><FiLoader /></Spin> : <FiArrowRight />}
-          <span>
-            {isSignIn ? t('auth.actions.createAccount') : t('auth.actions.login')}
-          </span>
+          {isLoading ? (
+            <Spin>
+              <FiLoader />
+            </Spin>
+          ) : (
+            <FiArrowRight />
+          )}
+          <span>{isSignIn ? t('auth.actions.createAccount') : t('auth.actions.login')}</span>
         </SubmitButton>
       </Form>
 

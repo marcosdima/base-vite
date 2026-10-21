@@ -5,7 +5,6 @@ import { RouterProvider } from 'react-router-dom';
 import { store } from './app/store';
 import { router } from './app/router';
 import './i18n';
-// @ts-ignore - AppThemeProvider.jsx will be migrated to TypeScript in a later phase
 import { AppThemeProvider } from './styles/AppThemeProvider';
 
 ReactDOM.createRoot(document.getElementById('app')!).render(

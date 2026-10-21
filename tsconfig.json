@@ -8,6 +8,7 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "skipLibCheck": true,
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
@@ -17,7 +18,7 @@
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["vite/client", "node"]
+    "types": ["vite/client", "node", "vitest/globals", "@testing-library/jest-dom/vitest"]
   },
   "include": ["src", "vite.config.js", "vitest.config.ts"],
   "exclude": ["dist", "node_modules"]

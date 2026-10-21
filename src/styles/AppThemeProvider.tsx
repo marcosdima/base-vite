@@ -12,9 +12,7 @@ function getInitialTheme(): Theme {
   if (stored === 'dark') return darkTheme;
   if (stored === 'light') return lightTheme;
 
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? darkTheme
-    : lightTheme;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? darkTheme : lightTheme;
 }
 
 interface ThemeContextValue {

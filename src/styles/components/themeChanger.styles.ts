@@ -12,7 +12,8 @@ export const ToggleButton = styled.button`
   color: ${({ theme }: { theme: DefaultTheme }) => theme.colors.textMuted};
   cursor: pointer;
   flex-shrink: 0;
-  transition: color ${({ theme }: { theme: DefaultTheme }) => theme.transitions.default},
+  transition:
+    color ${({ theme }: { theme: DefaultTheme }) => theme.transitions.default},
     border-color ${({ theme }: { theme: DefaultTheme }) => theme.transitions.default},
     background ${({ theme }: { theme: DefaultTheme }) => theme.transitions.default};
 

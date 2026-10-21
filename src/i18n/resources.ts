@@ -1,4 +1,4 @@
-type Translation = Record<string, any>;
+type Translation = Record<string, unknown>;
 
 export interface Resources {
   en: { translation: Translation };
@@ -47,19 +47,23 @@ export const resources: Resources = {
         featureCards: [
           {
             title: 'Application structure',
-            description: 'App shell, pages, features, services, and routing are already separated to scale cleanly.',
+            description:
+              'App shell, pages, features, services, and routing are already separated to scale cleanly.',
           },
           {
             title: 'REST API workflow',
-            description: 'RTK Query mutations and queries are connected to an Axios client with auth header support.',
+            description:
+              'RTK Query mutations and queries are connected to an Axios client with auth header support.',
           },
           {
             title: 'Bilingual UI',
-            description: 'English and Spanish strings are configured and the language toggle is already mounted.',
+            description:
+              'English and Spanish strings are configured and the language toggle is already mounted.',
           },
           {
             title: 'Auth baseline',
-            description: 'Log in, sign up, session persistence, and protected routes are ready for your backend.',
+            description:
+              'Log in, sign up, session persistence, and protected routes are ready for your backend.',
           },
         ],
         simpleTitle: 'Home',
@@ -130,9 +134,11 @@ export const resources: Resources = {
         name: 'Current user',
         fallbackUser: 'Authenticated user',
         apiCardTitle: 'REST base URL',
-        apiCardDescription: 'Change this value using VITE_API_URL to point the template to your backend.',
+        apiCardDescription:
+          'Change this value using VITE_API_URL to point the template to your backend.',
         sessionCardTitle: 'Session token',
-        sessionCardDescription: 'The token is persisted in localStorage and attached automatically to every request.',
+        sessionCardDescription:
+          'The token is persisted in localStorage and attached automatically to every request.',
         profileRequestFailed: 'Failed to fetch profile. Check your endpoint or token.',
         refresh: 'Refresh profile',
         refreshing: 'Refreshing...',
@@ -180,11 +186,13 @@ export const resources: Resources = {
         featureCards: [
           {
             title: 'Estructura de aplicación',
-            description: 'App shell, páginas, features, servicios y routing ya están separados para escalar limpiamente.',
+            description:
+              'App shell, páginas, features, servicios y routing ya están separados para escalar limpiamente.',
           },
           {
             title: 'Flujo de API REST',
-            description: 'Las mutaciones y consultas de RTK Query están conectadas a un cliente Axios con soporte de headers de auth.',
+            description:
+              'Las mutaciones y consultas de RTK Query están conectadas a un cliente Axios con soporte de headers de auth.',
           },
           {
             title: 'UI bilingüe',
@@ -192,7 +200,8 @@ export const resources: Resources = {
           },
           {
             title: 'Base de autenticación',
-            description: 'Login, registro, persistencia de sesión y rutas protegidas listas para tu backend.',
+            description:
+              'Login, registro, persistencia de sesión y rutas protegidas listas para tu backend.',
           },
         ],
         simpleTitle: 'Inicio',
@@ -203,7 +212,8 @@ export const resources: Resources = {
         loginTitle: 'Bienvenido otra vez',
         loginSubtitle: 'Usá las credenciales de tu backend para entrar al panel protegido.',
         signInTitle: 'Creá tu cuenta',
-        signInSubtitle: 'Este formulario ya está conectado a un endpoint REST y listo para adaptar a tu API.',
+        signInSubtitle:
+          'Este formulario ya está conectado a un endpoint REST y listo para adaptar a tu API.',
         haveAccount: '¿Ya tenés cuenta?',
         needAccount: '¿Necesitás una cuenta?',
         fields: {
@@ -221,7 +231,8 @@ export const resources: Resources = {
           createAccount: 'Crear cuenta',
         },
         success: {
-          accountCreated: 'La cuenta se creó correctamente. Ahora ingresá con tus credenciales nuevas.',
+          accountCreated:
+            'La cuenta se creó correctamente. Ahora ingresá con tus credenciales nuevas.',
         },
         errors: {
           passwordMismatch: 'Las contraseñas deben coincidir antes de enviar la solicitud.',
@@ -233,7 +244,8 @@ export const resources: Resources = {
         title: 'Panel conectado al store y a la capa de API',
         greeting: 'Hola, {{username}}!',
         greetingFallback: 'amigo',
-        baseDescription: 'Este dashboard es la base para probar e ir montando las próximas features.',
+        baseDescription:
+          'Este dashboard es la base para probar e ir montando las próximas features.',
         sessionTokenLabel: 'Token de sesión',
         noToken: 'Sin token',
         showcaseTitle: 'Features',
@@ -263,13 +275,15 @@ export const resources: Resources = {
         name: 'Usuario actual',
         fallbackUser: 'Usuario autenticado',
         apiCardTitle: 'URL base REST',
-        apiCardDescription: 'Cambiá este valor usando VITE_API_URL para apuntar la plantilla a tu backend.',
+        apiCardDescription:
+          'Cambiá este valor usando VITE_API_URL para apuntar la plantilla a tu backend.',
         sessionCardTitle: 'Token de sesión',
-        sessionCardDescription: 'El token se persiste en localStorage y se adjunta automáticamente a cada request.',
+        sessionCardDescription:
+          'El token se persiste en localStorage y se adjunta automáticamente a cada request.',
         profileRequestFailed: 'Falló la consulta del perfil. Revisá tu endpoint o el token.',
         refresh: 'Actualizar perfil',
         refreshing: 'Actualizando...',
       },
     },
-  }
-}
+  },
+};

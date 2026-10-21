@@ -74,7 +74,9 @@ export function AppShell() {
               <FiLogOut />
               <span>
                 {t('layout.logout')}
-                {authUser?.username || authUser?.name ? ` · ${authUser?.username ?? authUser?.name}` : ''}
+                {authUser?.username || authUser?.name
+                  ? ` · ${authUser?.username ?? authUser?.name}`
+                  : ''}
               </span>
             </GhostButton>
           ) : null}

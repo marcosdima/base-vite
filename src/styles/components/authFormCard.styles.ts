@@ -87,7 +87,13 @@ export const Feedback = styled.p<{ $type?: 'error' | 'success' | 'neutral' }>`
   padding: 12px 14px;
   border-radius: 10px;
   font-size: 0.9rem;
-  background: ${({ theme, $type }: { theme: DefaultTheme; $type?: 'error' | 'success' | 'neutral' }) => {
+  background: ${({
+    theme,
+    $type,
+  }: {
+    theme: DefaultTheme;
+    $type?: 'error' | 'success' | 'neutral';
+  }) => {
     if ($type === 'error') {
       return theme.colors.errorBackground;
     }

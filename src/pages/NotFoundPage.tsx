@@ -1,4 +1,3 @@
-// @ts-ignore - notFoundPage.styles.js will be migrated to TypeScript in a later phase
 import {
   BackLink,
   Code,

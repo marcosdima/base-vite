@@ -24,8 +24,8 @@ function createBasePoll(t: (key: string) => string) {
 }
 
 export function PollDemo() {
-  const { t, i18n } = useTranslation();
-  const basePoll = useMemo(() => createBasePoll(t), [i18n.language, t]);
+  const { t } = useTranslation();
+  const basePoll = useMemo(() => createBasePoll(t), [t]);
   const [poll, setPoll] = useState<Poll>(basePoll);
 
   function handleVote(optionId: string) {

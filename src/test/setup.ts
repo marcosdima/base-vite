@@ -1,1 +1,1 @@
-// Test setup file - vitest provides DOM assertions natively
+import '@testing-library/jest-dom/vitest';

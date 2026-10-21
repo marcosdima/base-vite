@@ -1,10 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import {
-  clearAuthState,
-  loadAuthState,
-  saveAuthState,
-  type AuthState,
-} from './authStorage';
+import { clearAuthState, loadAuthState, saveAuthState, type AuthState } from './authStorage';
 
 const persistedAuth = loadAuthState();
 
@@ -47,7 +42,15 @@ const authSlice = createSlice({
 
       clearAuthState();
     },
-    setUser: (state, action: PayloadAction<{ id: string | null; username: string | null; name: string | null; email: string | null } | null>) => {
+    setUser: (
+      state,
+      action: PayloadAction<{
+        id: string | null;
+        username: string | null;
+        name: string | null;
+        email: string | null;
+      } | null>,
+    ) => {
       state.user = action.payload;
 
       if (state.token) {
@@ -68,6 +71,7 @@ export const authReducer = authSlice.reducer;
 
 export const selectAuthToken = (state: { auth: AuthSliceState }) => state.auth.token;
 export const selectAuthUser = (state: { auth: AuthSliceState }) => state.auth.user;
-export const selectIsAuthenticated = (state: { auth: AuthSliceState }) => state.auth.isAuthenticated;
+export const selectIsAuthenticated = (state: { auth: AuthSliceState }) =>
+  state.auth.isAuthenticated;
 
 export type { AuthSliceState };

@@ -3,7 +3,11 @@ export class Input {
   value: string;
   required: boolean;
 
-  constructor({ id = 'input', value = '', required = false }: { id?: string; value?: string; required?: boolean } = {}) {
+  constructor({
+    id = 'input',
+    value = '',
+    required = false,
+  }: { id?: string; value?: string; required?: boolean } = {}) {
     this.id = id;
     this.value = value;
     this.required = required;
