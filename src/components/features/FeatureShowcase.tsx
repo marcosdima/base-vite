@@ -1,18 +1,17 @@
-import { useTranslation } from 'react-i18next'
-import { GroupInputBoard } from './inputs/groups/GroupInputBoard'
-import { PollDemo } from './inputs/poll/PollDemo'
-import { ThemeChanger } from './switches/ThemeChanger'
+import { useTranslation } from 'react-i18next';
+import { GroupInputBoard } from './inputs/groups/GroupInputBoard';
+import { PollDemo } from './inputs/poll/PollDemo';
+import { ThemeChanger } from './switches/ThemeChanger';
 import {
   FeatureCard,
   FeatureLabel,
   ShowcaseGrid,
   ShowcaseHeader,
   ShowcaseWrapper,
-} from '../../styles/components/featureShowcase.styles'
-
+} from '../../styles/components/featureShowcase.styles';
 
 export function FeatureShowcase() {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
 
   return (
     <ShowcaseWrapper>
@@ -35,5 +34,5 @@ export function FeatureShowcase() {
         </FeatureCard>
       </ShowcaseGrid>
     </ShowcaseWrapper>
-  )
+  );
 }

@@ -1,8 +1,8 @@
-import { FiGrid, FiHome, FiLogIn, FiLogOut, FiUserPlus } from 'react-icons/fi'
-import { useTranslation } from 'react-i18next'
-import { useDispatch, useSelector } from 'react-redux'
-import { Outlet } from 'react-router-dom'
-import { logout, selectAuthUser, selectIsAuthenticated } from '../../features/auth/authSlice'
+import { FiGrid, FiHome, FiLogIn, FiLogOut, FiUserPlus } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
+import { useDispatch, useSelector } from 'react-redux';
+import { Outlet } from 'react-router-dom';
+import { logout, selectAuthUser, selectIsAuthenticated } from '../../features/auth/authSlice';
 import {
   Brand,
   Controls,
@@ -11,29 +11,34 @@ import {
   Shell,
   StyledNavLink,
   Topbar,
-} from '../../styles/components/appShell.styles'
-import { LanguageSwitcher } from '../features/switches/LanguageSwitcher'
-import { ThemeChanger } from '../features/switches/ThemeChanger'
+} from '../../styles/components/appShell.styles';
+import { LanguageSwitcher } from '../features/switches/LanguageSwitcher';
+import { ThemeChanger } from '../features/switches/ThemeChanger';
 
+interface NavLinkItem {
+  to: string;
+  label: string;
+  icon: React.ReactNode;
+}
 
 export function AppShell() {
-  const { t } = useTranslation()
-  const dispatch = useDispatch()
-  const isAuthenticated = useSelector(selectIsAuthenticated)
-  const authUser = useSelector(selectAuthUser)
+  const { t } = useTranslation();
+  const dispatch = useDispatch();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const authUser = useSelector(selectAuthUser);
 
   // These links stay declarative so adding pages later is low friction.
-  const primaryLinks = [
+  const primaryLinks: NavLinkItem[] = [
     { to: '/', label: t('nav.home'), icon: <FiHome /> },
     { to: '/dashboard', label: t('nav.dashboard'), icon: <FiGrid /> },
-  ]
+  ];
 
-  const secondaryLinks = isAuthenticated
+  const secondaryLinks: NavLinkItem[] = isAuthenticated
     ? []
     : [
         { to: '/login', label: t('nav.login'), icon: <FiLogIn /> },
         { to: '/signin', label: t('nav.signIn'), icon: <FiUserPlus /> },
-      ]
+      ];
 
   return (
     <Shell>
@@ -80,5 +85,5 @@ export function AppShell() {
         <Outlet />
       </main>
     </Shell>
-  )
+  );
 }

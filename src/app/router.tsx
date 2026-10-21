@@ -1,7 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom';
-// @ts-ignore - AppShell.jsx will be migrated to TypeScript in a later phase
 import { AppShell } from '../components/layout/AppShell';
-// @ts-ignore - RequireAuth.jsx will be migrated to TypeScript in a later phase
 import { RequireAuth } from '../components/auth/RequireAuth';
 import { DashboardPage } from '../pages/DashboardPage';
 import { HomePage } from '../pages/HomePage';

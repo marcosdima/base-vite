@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Poll } from './Poll'
+import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Poll } from './Poll';
 import {
   PollActionButton,
   PollActions,
@@ -9,39 +9,38 @@ import {
   PollQuestion,
   PollResult,
   PollWrap,
-} from '../../../../styles/components/inputs/pollDemo.styles'
+} from '../../../../styles/components/inputs/pollDemo.styles';
 
-function createBasePoll(t) {
+function createBasePoll(t: (key: string) => string) {
   return new Poll({
     question: t('dashboard.pollExample.question'),
     options: [
-      { id: 'a', label: t('dashboard.pollExample.optionA'), votes: 0 },
-      { id: 'b', label: t('dashboard.pollExample.optionB'), votes: 0 },
-      { id: 'c', label: t('dashboard.pollExample.optionC'), votes: 0 },
+      { id: 'a', label: t('dashboard.pollExample.optionA'), votes: 0, percentage: 0 },
+      { id: 'b', label: t('dashboard.pollExample.optionB'), votes: 0, percentage: 0 },
+      { id: 'c', label: t('dashboard.pollExample.optionC'), votes: 0, percentage: 0 },
     ],
     isOpen: true,
-  })
+  });
 }
 
-
 export function PollDemo() {
-  const { t, i18n } = useTranslation()
-  const basePoll = useMemo(() => createBasePoll(t), [i18n.language, t])
-  const [poll, setPoll] = useState(basePoll)
+  const { t, i18n } = useTranslation();
+  const basePoll = useMemo(() => createBasePoll(t), [i18n.language, t]);
+  const [poll, setPoll] = useState<Poll>(basePoll);
 
-  function handleVote(optionId) {
-    setPoll((current) => current.vote(optionId))
+  function handleVote(optionId: string) {
+    setPoll((current) => current.vote(optionId));
   }
 
   function handleClose() {
-    setPoll((current) => current.close())
+    setPoll((current) => current.close());
   }
 
   function handleReset() {
-    setPoll(createBasePoll(t))
+    setPoll(createBasePoll(t));
   }
 
-  const results = poll.getResults()
+  const results = poll.getResults();
 
   return (
     <PollWrap>
@@ -70,5 +69,5 @@ export function PollDemo() {
         </PollActionButton>
       </PollActions>
     </PollWrap>
-  )
+  );
 }

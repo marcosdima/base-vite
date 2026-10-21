@@ -1,78 +1,86 @@
-import { useState } from 'react'
-import { FiArrowRight, FiLoader, FiLock, FiUser } from 'react-icons/fi'
-import { useTranslation } from 'react-i18next'
-import { useDispatch } from 'react-redux'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { setCredentials } from '../../features/auth/authSlice'
-import { useLoginMutation, useSignInMutation } from '../../services/authApi'
+import { useState } from 'react';
+import { FiArrowRight, FiLoader, FiLock, FiUser } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
+import { useDispatch } from 'react-redux';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { setCredentials } from '../../features/auth/authSlice';
+import { useLoginMutation, useSignInMutation } from '../../services/authApi';
 import {
   Card,
-  CardEyebrow,
-  CardSubtitle,
-  CardTitle,
   Feedback,
   FieldInput,
   FieldLabel,
   Footer,
   Form,
-  Header,
   Spin,
   SubmitButton,
-} from '../../styles/components/authFormCard.styles'
+} from '../../styles/components/authFormCard.styles';
 
-const initialFormState = {
+interface InitialFormState {
+  username: string;
+  password: string;
+  confirmPassword: string;
+}
+
+const initialFormState: InitialFormState = {
   username: '',
   password: '',
   confirmPassword: '',
-}
+};
 
+function getErrorMessage(error: unknown, fallbackMessage: string): string {
+  if (!error || typeof error !== 'object') return fallbackMessage;
 
-function getErrorMessage(error, fallbackMessage) {
+  const err = error as Record<string, unknown>;
   return (
-    error?.data?.message ||
-    error?.data?.error ||
-    error?.message ||
+    (err.data as Record<string, unknown>)?.message as string ??
+    (err.data as Record<string, unknown>)?.error as string ??
+    (err.message as string) ??
     fallbackMessage
-  )
+  );
 }
 
+interface AuthFormCardProps {
+  mode: 'login' | 'signin';
+  notice?: string;
+}
 
-export function AuthFormCard({ mode, notice = '' }) {
-  const { t } = useTranslation()
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
-  const location = useLocation()
-  const [formState, setFormState] = useState(initialFormState)
-  const [feedbackMessage, setFeedbackMessage] = useState(notice)
-  const [feedbackType, setFeedbackType] = useState(notice ? 'success' : 'neutral')
-  const [login, loginResult] = useLoginMutation()
-  const [signIn, signInResult] = useSignInMutation()
+export function AuthFormCard({ mode, notice = '' }: AuthFormCardProps) {
+  const { t } = useTranslation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [formState, setFormState] = useState<InitialFormState>(initialFormState);
+  const [feedbackMessage, setFeedbackMessage] = useState(notice);
+  const [feedbackType, setFeedbackType] = useState<'error' | 'success' | 'neutral'>(
+    notice ? 'success' : 'neutral',
+  );
+  const [login, loginResult] = useLoginMutation();
+  const [signIn, signInResult] = useSignInMutation();
 
-  const isSignIn = mode === 'signin'
-  const isLoading = loginResult.isLoading || signInResult.isLoading
-  const redirectTo = location.state?.redirectTo ?? '/dashboard'
+  const isSignIn = mode === 'signin';
+  const isLoading = loginResult.isLoading || signInResult.isLoading;
+  const redirectTo = location.state?.redirectTo ?? '/dashboard';
 
-  function handleChange(event) {
-    const { name, value } = event.target
+  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const { name, value } = event.target;
 
     setFormState((currentState) => ({
       ...currentState,
       [name]: value,
-    }))
+    }));
   }
 
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-  async function handleSubmit(event) {
-    event.preventDefault()
-
-    // This clears the previous message before the next request starts.
-    setFeedbackMessage('')
-    setFeedbackType('neutral')
+    setFeedbackMessage('');
+    setFeedbackType('neutral');
 
     if (isSignIn && formState.password !== formState.confirmPassword) {
-      setFeedbackType('error')
-      setFeedbackMessage(t('auth.errors.passwordMismatch'))
-      return
+      setFeedbackType('error');
+      setFeedbackMessage(t('auth.errors.passwordMismatch'));
+      return;
     }
 
     try {
@@ -80,41 +88,38 @@ export function AuthFormCard({ mode, notice = '' }) {
         const result = await signIn({
           username: formState.username,
           password: formState.password,
-        }).unwrap()
+          confirmPassword: formState.confirmPassword,
+        }).unwrap();
 
         if (result.token) {
-          dispatch(setCredentials(result))
-          navigate('/dashboard', { replace: true })
-          return
+          dispatch(setCredentials(result));
+          navigate('/dashboard', { replace: true });
+          return;
         }
 
         navigate('/login', {
           replace: true,
           state: { successMessage: t('auth.success.accountCreated') },
-        })
-        return
+        });
+        return;
       }
 
       const result = await login({
         username: formState.username,
         password: formState.password,
-      }).unwrap()
+      }).unwrap();
 
-      dispatch(setCredentials(result))
-      navigate(redirectTo, { replace: true })
+      dispatch(setCredentials(result));
+      navigate(redirectTo, { replace: true });
     } catch (error) {
-      setFeedbackType('error')
-      setFeedbackMessage(
-        getErrorMessage(error, t('auth.errors.unexpectedResponse')),
-      )
+      setFeedbackType('error');
+      setFeedbackMessage(getErrorMessage(error, t('auth.errors.unexpectedResponse')));
     }
   }
 
-  const title = isSignIn ? t('auth.signInTitle') : t('auth.loginTitle')
-  const subtitle = isSignIn ? t('auth.signInSubtitle') : t('auth.loginSubtitle')
-  const alternatePath = isSignIn ? '/login' : '/signin'
-  const alternateLabel = isSignIn ? t('auth.haveAccount') : t('auth.needAccount')
-  const alternateAction = isSignIn ? t('nav.login') : t('nav.signIn')
+  const alternatePath = isSignIn ? '/login' : '/signin';
+  const alternateLabel = isSignIn ? t('auth.haveAccount') : t('auth.needAccount');
+  const alternateAction = isSignIn ? t('nav.login') : t('nav.signIn');
 
   return (
     <Card
@@ -122,12 +127,6 @@ export function AuthFormCard({ mode, notice = '' }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: 'easeOut' }}
     >
-      <Header>
-        <CardEyebrow>{t('auth.badge')}</CardEyebrow>
-        <CardTitle>{title}</CardTitle>
-        <CardSubtitle>{subtitle}</CardSubtitle>
-      </Header>
-
       <Form onSubmit={handleSubmit}>
         <FieldLabel>
           <span>{t('auth.fields.username')}</span>
@@ -195,5 +194,5 @@ export function AuthFormCard({ mode, notice = '' }) {
         {alternateLabel} <Link to={alternatePath}>{alternateAction}</Link>
       </Footer>
     </Card>
-  )
+  );
 }

@@ -1,19 +1,23 @@
-import { FiGlobe } from 'react-icons/fi'
-import { useTranslation } from 'react-i18next'
+import { FiGlobe } from 'react-icons/fi';
+import { useTranslation } from 'react-i18next';
 import {
   GlobeIcon,
   LangButton,
   Wrapper,
-} from '../../../styles/components/languageSwitcher.styles'
+} from '../../../styles/components/languageSwitcher.styles';
 
-const languages = [
+interface Language {
+  code: 'en' | 'es';
+  label: string;
+}
+
+const languages: Language[] = [
   { code: 'en', label: 'EN' },
   { code: 'es', label: 'ES' },
-]
-
+];
 
 export function LanguageSwitcher() {
-  const { i18n, t } = useTranslation()
+  const { i18n, t } = useTranslation();
 
   return (
     <Wrapper aria-label={t('layout.languageSwitcher')}>
@@ -32,5 +36,5 @@ export function LanguageSwitcher() {
         </LangButton>
       ))}
     </Wrapper>
-  )
+  );
 }
