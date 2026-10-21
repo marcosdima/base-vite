@@ -1,14 +1,14 @@
+// @ts-ignore - homePage.styles.js will be migrated to TypeScript in a later phase
 import {
   HomeParagraph,
   HomeTitle,
   Page,
   Placeholder,
-} from '../styles/pages/homePage.styles'
-import { useTranslation } from 'react-i18next'
-
+} from '../styles/pages/homePage.styles';
+import { useTranslation } from 'react-i18next';
 
 export function HomePage() {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
 
   return (
     <Page>
@@ -17,5 +17,5 @@ export function HomePage() {
         <HomeParagraph>{t('home.simpleDescription')}</HomeParagraph>
       </Placeholder>
     </Page>
-  )
+  );
 }

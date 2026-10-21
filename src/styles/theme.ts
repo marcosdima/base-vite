@@ -1,4 +1,63 @@
-export const lightTheme = {
+export interface ThemeColors {
+  text: string;
+  textStrong: string;
+  textMuted: string;
+  textSubtle: string;
+  background: string;
+  surface: string;
+  surfaceMuted: string;
+  surfaceOverlay: string;
+  border: string;
+  borderStrong: string;
+  accent: string;
+  accentHover: string;
+  accentSoft: string;
+  accentBorder: string;
+  successBackground: string;
+  successText: string;
+  errorBackground: string;
+  errorText: string;
+  neutralBackground: string;
+  neutralText: string;
+}
+
+export interface ThemeShadows {
+  card: string;
+}
+
+export interface ThemeRadii {
+  small: string;
+  medium: string;
+  large: string;
+  pill: string;
+}
+
+export interface ThemeSpacing {
+  page: string;
+  section: string;
+  component: string;
+  compact: string;
+}
+
+export interface ThemeTransitions {
+  default: string;
+}
+
+export interface ThemeFonts {
+  body: string;
+}
+
+export interface Theme {
+  name: 'light' | 'dark';
+  fonts: ThemeFonts;
+  colors: ThemeColors;
+  shadows: ThemeShadows;
+  radii: ThemeRadii;
+  spacing: ThemeSpacing;
+  transitions: ThemeTransitions;
+}
+
+export const lightTheme: Theme = {
   name: 'light',
   fonts: {
     body: "'Space Grotesk', 'Segoe UI', sans-serif",
@@ -43,9 +102,9 @@ export const lightTheme = {
   transitions: {
     default: '0.15s ease',
   },
-}
+};
 
-export const darkTheme = {
+export const darkTheme: Theme = {
   ...lightTheme,
   name: 'dark',
   colors: {
@@ -73,4 +132,8 @@ export const darkTheme = {
   shadows: {
     card: '0 18px 48px rgba(2, 6, 23, 0.4)',
   },
+};
+
+declare module 'styled-components' {
+  export interface DefaultTheme extends Theme {}
 }
