@@ -4,55 +4,107 @@ import { render, screen } from '../test/render';
 import { InodesPage } from './InodesPage';
 
 describe('InodesPage', () => {
-  it('renders the Ubuntu 24.04 Ext4 reference and 100-block disk matrix', () => {
+  it('renders the Ubuntu 24.04 Ext4 reference, inode card, and block tree', () => {
     render(<InodesPage />);
 
-    expect(screen.getAllByText(/Ubuntu 24.04 LTS/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/documento.dat/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/INODO #42/i).length).toBeGreaterThan(0);
+    // Header toolbar context
+    expect(screen.getByText(/Ubuntu 24.04 LTS/i)).toBeInTheDocument();
+    expect(screen.getByText(/Ext4 sin extents · Mapeo Indirecto Real/i)).toBeInTheDocument();
 
-    // 100 disk cell elements
-    const cells = document.querySelectorAll('.matrix-cell');
-    expect(cells.length).toBe(100);
+    // Inode card
+    expect(screen.getAllByText(/Inodo #42/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/documento\.dat/i).length).toBeGreaterThan(0);
+
+    // Hierarchical Block Tree panel (initially empty)
+    expect(screen.getByText(/Árbol de Direccionamiento de Bloques Ext4/i)).toBeInTheDocument();
+    expect(screen.getByText(/Archivo vacío/i)).toBeInTheDocument();
+
+    // Side column controls
+    expect(screen.getByText(/Control de Tamaño y Bloques/i)).toBeInTheDocument();
+    expect(screen.getByText(/Inspección de Bloque Lógico/i)).toBeInTheDocument();
+    expect(screen.getByText(/Métricas de Almacenamiento/i)).toBeInTheDocument();
   });
 
-  it('progressively loads blocks and fills pointers when using loading buttons', () => {
+  it('loads blocks dynamically via quick-load buttons (+1 Bloque, +1,024 Bloques, Vaciar)', () => {
     render(<InodesPage />);
 
-    // Initially empty at 0 blocks (0.0 KB)
-    expect(screen.getByText(/0.0 KB/i)).toBeInTheDocument();
-    expect(screen.getByText(/0 de 28 Bloques/i)).toBeInTheDocument();
+    // Initially 0 blocks
+    expect(screen.getAllByText(/0 B/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/0 Bloques de datos/i).length).toBeGreaterThan(0);
 
-    const add1Btn = screen.getByRole('button', { name: /\+1 Bloque/i });
+    // Click +1 Bloque (4 KB)
+    const add1Btn = screen.getByRole('button', { name: /\+1 Bloque \(4 KB\)/i });
     fireEvent.click(add1Btn);
 
-    // Now at 1 block (4.0 KB)
-    expect(screen.getByText(/4.0 KB/i)).toBeInTheDocument();
-    expect(screen.getByText(/1 de 28 Bloques/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/4 KB/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/1 Bloques de datos/i).length).toBeGreaterThan(0);
 
-    // Add 4 blocks -> 5 blocks (20.0 KB)
-    const add4Btn = screen.getByRole('button', { name: /\+4 Bloques/i });
-    fireEvent.click(add4Btn);
+    // Direct pointer [0] is allocated
+    const ptr0 = document.getElementById('ptr-direct-0');
+    expect(ptr0).toBeInTheDocument();
+    expect(ptr0).toHaveClass('stack-direct');
+    expect(ptr0).not.toHaveClass('stack-empty');
 
-    expect(screen.getByText(/20.0 KB/i)).toBeInTheDocument();
-    expect(screen.getByText(/5 de 28 Bloques/i)).toBeInTheDocument();
+    // Click +1,024 Bloques (4 MB)
+    const add1024Btn = screen.getByRole('button', { name: /\+1,024 Bloques \(4 MB\)/i });
+    fireEvent.click(add1024Btn);
 
-    // Directo [4] (5th block) must be allocated and show Bloque #00, not (Vacío / NULL)
-    const ptrDirect4 = document.getElementById('ptr-direct-4');
-    expect(ptrDirect4).toHaveClass('stack-direct');
-    expect(ptrDirect4).not.toHaveClass('pointer-empty');
-    expect(ptrDirect4).toHaveTextContent(/Bloque #00/i);
+    // 1 + 1024 = 1,025 blocks (enters simple indirect branch)
+    expect(screen.getAllByText(/1[.,]025 Bloques de datos/i).length).toBeGreaterThan(0);
+    // Simple indirect pointer [12] is now active
+    const ptrSimple = document.getElementById('ptr-indirect-1');
+    expect(ptrSimple).toHaveClass('stack-indirect-1');
+
+    // Click Vaciar (0 B)
+    const clearBtn = screen.getByRole('button', { name: /Vaciar \(0 B\)/i });
+    fireEvent.click(clearBtn);
+
+    expect(screen.getAllByText(/0 Bloques de datos/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Archivo vacío/i)).toBeInTheDocument();
+  });
+
+  it('supports presets and typed file size input', () => {
+    render(<InodesPage />);
+
+    // Click 48 KB preset chip (fills all 12 direct pointers)
+    const preset48KB = screen.getByRole('button', { name: /48 KB - Llena los 12 directos/i });
+    fireEvent.click(preset48KB);
+
+    expect(screen.getAllByText(/48 KB/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/12 Bloques de datos/i).length).toBeGreaterThan(0);
+
+    // All direct pointers are allocated, simple indirect pointer is still empty
+    const ptr11 = document.getElementById('ptr-direct-11');
+    expect(ptr11).toHaveClass('stack-direct');
+    const ptr12 = document.getElementById('ptr-indirect-1');
+    expect(ptr12).toHaveClass('stack-empty');
+
+    // Use typed size input to set 100 MB
+    const sizeInput = screen.getByLabelText(/Fijar tamaño:/i);
+    const unitSelect = screen.getByRole('combobox', { name: /Unidad de tamaño/i });
+    const applyBtn = screen.getByRole('button', { name: /Aplicar/i });
+
+    fireEvent.change(sizeInput, { target: { value: '100' } });
+    fireEvent.change(unitSelect, { target: { value: 'MB' } });
+    fireEvent.click(applyBtn);
+
+    // 100 MB uses double indirect addressing
+    expect(screen.getAllByText(/100 MB/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/25[.,]600 Bloques de datos/i).length).toBeGreaterThan(0);
+
+    // Storage stats card reports both data blocks and index blocks
+    expect(screen.getByText(/Bloques de índices:/i)).toBeInTheDocument();
   });
 
   it('switches between block pointers view and friendly Ext4 metadata view with explanation modal', () => {
     render(<InodesPage />);
 
     // Initially in pointers view
-    expect(screen.getByRole('button', { name: /punteros a bloques/i })).toHaveClass('active');
+    expect(screen.getByRole('button', { name: /Punteros a Bloques/i })).toHaveClass('active');
     expect(document.getElementById('ptr-direct-0')).toBeInTheDocument();
 
     // Switch to friendly metadata view
-    const metaSwitchBtn = screen.getByRole('button', { name: /metadatos ext4/i });
+    const metaSwitchBtn = screen.getByRole('button', { name: /Metadatos Ext4/i });
     fireEvent.click(metaSwitchBtn);
 
     expect(metaSwitchBtn).toHaveClass('active');
@@ -70,89 +122,49 @@ describe('InodesPage', () => {
     expect(screen.getByText(/st_mode \(i_mode\)/i)).toBeInTheDocument();
     expect(screen.getByText(/chmod 644 documento\.dat/i)).toBeInTheDocument();
 
-    // Close the explanation modal
+    // Close the explanation modal via Done button
     const doneBtn = screen.getByRole('button', { name: /Entendido/i });
     fireEvent.click(doneBtn);
     expect(screen.queryByText(/¿Qué es este campo en un inodo\?/i)).not.toBeInTheDocument();
 
+    // Open again and test closing via Escape key
+    fireEvent.click(screen.getByText(/Permisos de acceso/i));
+    expect(screen.getByText(/¿Qué es este campo en un inodo\?/i)).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(screen.queryByText(/¿Qué es este campo en un inodo\?/i)).not.toBeInTheDocument();
+
     // Switch back to pointers
-    const pointersSwitchBtn = screen.getByRole('button', { name: /punteros a bloques/i });
+    const pointersSwitchBtn = screen.getByRole('button', { name: /Punteros a Bloques/i });
     fireEvent.click(pointersSwitchBtn);
     expect(document.getElementById('ptr-direct-0')).toBeInTheDocument();
   });
 
-  it('opens floating inspector for simple indirect block with realistic 1,024 entries, ellipsis and reduced disk cluster', () => {
+  it('inspects logical blocks, shows resolution hops, and toggles tree expansion', () => {
     render(<InodesPage />);
 
-    // Load up to simple indirect phase (e.g. fill 28 blocks or click +4 a few times)
-    const fillBtn = screen.getByRole('button', { name: /Llenar \(112 KB\)/i });
-    fireEvent.click(fillBtn);
+    // Load 100 MB preset
+    const preset100MB = screen.getByRole('button', {
+      name: /100 MB - Dentro del indirecto doble/i,
+    });
+    fireEvent.click(preset100MB);
 
-    // Click Ind. Simple [12] pointer in the Inode card
-    const ptrSimple = document.getElementById('ptr-indirect-1');
-    expect(ptrSimple).toBeInTheDocument();
-    fireEvent.click(ptrSimple!);
+    // Inspect logical block 2000
+    const logicalInput = document.getElementById('logical-block-search') as HTMLInputElement;
+    fireEvent.change(logicalInput, { target: { value: '2000' } });
 
-    // Floating inspector modal is displayed
-    const modal = document.getElementById('index-inspector-modal');
-    expect(modal).toBeInTheDocument();
+    // Logical block 2000 is in double indirect branch
+    expect(screen.getAllByText(/Ind\. Doble/i).length).toBeGreaterThan(0);
+    expect(screen.getByText(/3 lecturas a disco/i)).toBeInTheDocument();
 
-    // Check Ext4 technical spec badge
-    expect(screen.getAllByText(/1,024 Entradas Reales/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/4,096 B/i)).toBeInTheDocument();
+    // Check resolution formula
+    expect(screen.getByText(/Fórmula de direccionamiento:/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/964/i).length).toBeGreaterThan(0);
 
-    // Check reduced disk cluster ("parte reducida del disco")
-    const miniCluster = document.getElementById('mini-cluster-grid');
-    expect(miniCluster).toBeInTheDocument();
-    const miniCells = miniCluster?.querySelectorAll('.mini-cell');
-    expect(miniCells && miniCells.length).toBeGreaterThan(0);
+    // Test Expand All and Collapse All buttons
+    const expandAllBtn = screen.getByRole('button', { name: /Expandir ramas/i });
+    fireEvent.click(expandAllBtn);
 
-    // Check realistic 1,024-entry table with Option 2 ranges and ellipsis
-    expect(screen.getAllByText(/Entrada \[0\]/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Entrada \[1\]/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Entrada \[2\]/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Entrada \[3\]/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/entradas NULL \(0x00000000\) libres restantes/i)).toBeInTheDocument();
-    expect(screen.getByText(/Entrada \[1023\]/i)).toBeInTheDocument();
-
-    // Test interactive search lookup in the modal for entry 1023
-    const searchInput = screen.getByLabelText(/Índice en el bloque/i);
-    fireEvent.change(searchInput, { target: { value: '1023' } });
-    expect(screen.getAllByText(/1036/i).length).toBeGreaterThan(0); // Logical position 1036
-    expect(screen.getByText(/4,239,360 B/i)).toBeInTheDocument(); // Byte offset
-
-    // Close inspector with close button
-    const closeBtn = screen.getAllByRole('button', { name: /Cerrar Inspector/i })[0];
-    fireEvent.click(closeBtn);
-    expect(document.getElementById('index-inspector-modal')).not.toBeInTheDocument();
-  });
-
-  it('allows opening double and triple indirect floating inspectors and closing via Escape key', () => {
-    render(<InodesPage />);
-
-    // Open double indirect inspector from launcher bar
-    const doubleLauncherBtn = screen.getByTitle(/Abrir inspector flotante de Índice Doble/i);
-    fireEvent.click(doubleLauncherBtn);
-
-    expect(document.getElementById('index-inspector-modal')).toBeInTheDocument();
-    expect(screen.getByText(/1,048,576 Bloques \(4 GB\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/Subtabla N2 activa/i)).toBeInTheDocument();
-
-    // Close via Escape key
-    fireEvent.keyDown(window, { key: 'Escape' });
-    expect(document.getElementById('index-inspector-modal')).not.toBeInTheDocument();
-
-    // Open triple indirect inspector from launcher bar
-    const tripleLauncherBtn = screen.getByTitle(/Abrir inspector flotante de Índice Triple/i);
-    fireEvent.click(tripleLauncherBtn);
-
-    expect(document.getElementById('index-inspector-modal')).toBeInTheDocument();
-    expect(screen.getByText(/1,073,741,824 Bloques Direccionables \(4 TB\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/Jerarquía de 3 Niveles/i)).toBeInTheDocument();
-
-    // Close via modal backdrop dismiss
-    const dismissBtn = screen.getByRole('button', { name: /Cerrar modal/i });
-    fireEvent.click(dismissBtn);
-    expect(document.getElementById('index-inspector-modal')).not.toBeInTheDocument();
+    const collapseAllBtn = screen.getByRole('button', { name: /Colapsar/i });
+    fireEvent.click(collapseAllBtn);
   });
 });
