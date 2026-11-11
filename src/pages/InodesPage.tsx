@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   LuArrowRight,
-  LuDatabase,
   LuFileCode,
   LuFileText,
-  LuHardDrive,
   LuHash,
   LuInfo,
   LuLayers,
@@ -95,7 +93,6 @@ export function InodesPage() {
 
   const sizeBytes = dataBlocks * BLOCK_SIZE;
   const totalBlocks = useMemo(() => map.totalBlocks(dataBlocks), [map, dataBlocks]);
-  const indexBlocks = totalBlocks - dataBlocks;
 
   const metadata = useMemo(() => {
     const base = sim.getInodeMetadata(0);
@@ -278,20 +275,10 @@ export function InodesPage() {
             <LuTerminal /> Ubuntu 24.04 LTS · Kernel 6.8 (Ext4 sin extents · Mapeo Indirecto Real)
           </span>
           <span className="badge info">
-            <LuFileCode /> {metadata.filename} (Inodo #{metadata.inode_id})
+            <LuFileCode /> {metadata.filename} · Inodo
           </span>
           <span className="badge mode-tag">
             <strong>{metadata.size_formatted}</strong> ({fmt(dataBlocks)} Bloques de datos)
-          </span>
-        </div>
-
-        <div className="loading-toolbar-right">
-          <span
-            className="badge badge-storage-stat"
-            title="Total de bloques de 4 KB ocupados físicamente"
-          >
-            <LuHardDrive /> {fmt(totalBlocks)} Bloques físicos en disco ({fmt(indexBlocks)} de
-            índices)
           </span>
         </div>
       </section>
@@ -304,7 +291,7 @@ export function InodesPage() {
             <div className="inode-header inode-header-compact">
               <div className="inode-header-title">
                 <LuFileCode className="inode-icon" />
-                <span className="inode-id">Inodo #{metadata.inode_id}</span>
+                <span className="inode-id">Inodo</span>
               </div>
             </div>
 
@@ -453,7 +440,6 @@ export function InodesPage() {
         <div className="disk-column">
           <BlockDiagram
             map={map}
-            inodeId={metadata.inode_id}
             dataBlocks={dataBlocks}
             selectedLogical={selectedLogical}
             onSelectLogical={(l) => selectLogical(l, dataBlocks)}
@@ -678,41 +664,6 @@ export function InodesPage() {
                   : 'Selecciona cualquier bloque en el árbol o ingresa un número de bloque lógico arriba.'}
               </p>
             )}
-          </section>
-
-          {/* Card 3: Métricas de Almacenamiento Ext4 */}
-          <section className="side-card storage-stats-card">
-            <div className="card-header-row">
-              <div className="card-title-wrap">
-                <LuDatabase className="card-icon" />
-                <h4>Métricas de Almacenamiento</h4>
-              </div>
-            </div>
-
-            <div className="stats-grid">
-              <div className="stat-tile">
-                <span className="stat-tile-lbl">Bloques de datos:</span>
-                <span className="stat-tile-val font-mono">{fmt(dataBlocks)}</span>
-              </div>
-              <div className="stat-tile">
-                <span className="stat-tile-lbl">Bloques de índices:</span>
-                <span className="stat-tile-val font-mono">{fmt(indexBlocks)}</span>
-              </div>
-              <div className="stat-tile">
-                <span className="stat-tile-lbl">Total bloques físicos:</span>
-                <span className="stat-tile-val font-mono highlight-cyan">{fmt(totalBlocks)}</span>
-              </div>
-              <div className="stat-tile">
-                <span className="stat-tile-lbl">Sobrecarga de índices:</span>
-                <span className="stat-tile-val font-mono">
-                  {dataBlocks > 0 ? ((indexBlocks / totalBlocks) * 100).toFixed(2) + '%' : '0%'}
-                </span>
-              </div>
-              <div className="stat-tile stat-tile-full">
-                <span className="stat-tile-lbl">Sectores físicos POSIX (512 B):</span>
-                <span className="stat-tile-val font-mono">{fmt(totalBlocks * 8)} sectores</span>
-              </div>
-            </div>
           </section>
         </div>
       </div>

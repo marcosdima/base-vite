@@ -23,7 +23,6 @@ export type DiagramTab = 'all' | 'direct' | 'simple' | 'double' | 'triple' | 'pa
 
 interface BlockDiagramProps {
   map: BlockMap;
-  inodeId: number;
   dataBlocks: number;
   selectedLogical: number | null;
   onSelectLogical: (logical: number) => void;
@@ -84,7 +83,6 @@ function getRepresentativeEntries(
 
 export function BlockDiagram({
   map,
-  inodeId,
   dataBlocks,
   selectedLogical,
   onSelectLogical,
@@ -261,8 +259,8 @@ export function BlockDiagram({
             <LuHardDrive className="empty-icon" />
             <h3>Archivo vacío (0 bytes asignados)</h3>
             <p>
-              El inodo #<strong>{inodeId}</strong> no tiene ningún bloque asignado en disco. Los 15
-              punteros de <code>i_block[]</code> apuntan a <code>0x00000000 (NULL)</code>.
+              El inodo no tiene ningún bloque asignado en disco. Los 15 punteros de{' '}
+              <code>i_block[]</code> apuntan a <code>0x00000000 (NULL)</code>.
             </p>
             <span className="empty-hint">
               Utiliza el panel de control lateral para cargar bloques o seleccionar un tamaño
@@ -289,7 +287,7 @@ export function BlockDiagram({
                 <div className="flow-chain-container">
                   {/* Nodo Inodo */}
                   <div className="diagram-card block-card-inode">
-                    <div className="card-badge-header">INODO #{inodeId}</div>
+                    <div className="card-badge-header">INODO</div>
                     <div className="card-body-mono">
                       <span className="mono-label">Puntero:</span>
                       <strong className="mono-val text-cyan">i_block[{resolution.slot}]</strong>

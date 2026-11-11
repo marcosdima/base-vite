@@ -12,7 +12,7 @@ describe('InodesPage', () => {
     expect(screen.getByText(/Ext4 sin extents · Mapeo Indirecto Real/i)).toBeInTheDocument();
 
     // Inode card
-    expect(screen.getAllByText(/Inodo #42/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/^Inodo$/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/documento\.dat/i).length).toBeGreaterThan(0);
 
     // Block Diagram panel (initially empty with NULL pointers)
@@ -23,7 +23,6 @@ describe('InodesPage', () => {
     // Side column controls
     expect(screen.getByText(/Control de Tamaño y Bloques/i)).toBeInTheDocument();
     expect(screen.getByText(/Inspección de Bloque Lógico/i)).toBeInTheDocument();
-    expect(screen.getByText(/Métricas de Almacenamiento/i)).toBeInTheDocument();
   });
 
   it('loads blocks dynamically via quick-load buttons (+1 Bloque, +1,024 Bloques, Vaciar)', () => {
@@ -94,9 +93,6 @@ describe('InodesPage', () => {
     // 100 MB uses double indirect addressing
     expect(screen.getAllByText(/100 MB/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/25[.,]600 Bloques de datos/i).length).toBeGreaterThan(0);
-
-    // Storage stats card reports both data blocks and index blocks
-    expect(screen.getByText(/Bloques de índices:/i)).toBeInTheDocument();
   });
 
   it('switches between block pointers view and friendly Ext4 metadata view with explanation modal', () => {
