@@ -6,6 +6,7 @@ import {
   MAX_DATA_BLOCKS,
   PTRS_PER_BLOCK,
   blocksForBytes,
+  fmtHex,
   subtreeSize,
 } from './blockMap';
 
@@ -73,10 +74,15 @@ describe('BlockMap (real-scale indirect addressing)', () => {
     expect(map.allocatedChildren(simple, 5000)).toBe(1024);
   });
 
-  it('converts bytes to blocks', () => {
+  it('converts bytes to blocks and formats physical addresses to 8-digit hexadecimal', () => {
     expect(blocksForBytes(0)).toBe(0);
     expect(blocksForBytes(1)).toBe(1);
     expect(blocksForBytes(BLOCK_SIZE * 12)).toBe(12);
     expect(blocksForBytes(BLOCK_SIZE * 12 + 1)).toBe(13);
+
+    // Hexadecimal addresses
+    expect(fmtHex(1081344)).toBe('0x00108000');
+    expect(fmtHex(0)).toBe('0x00000000');
+    expect(fmtHex(1081355)).toBe('0x0010800b');
   });
 });

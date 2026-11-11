@@ -1,12 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   LuArrowRight,
-  LuChevronDown,
-  LuChevronUp,
   LuDatabase,
   LuFileCode,
   LuFileText,
-  LuFolderTree,
   LuHardDrive,
   LuHash,
   LuInfo,
@@ -18,7 +15,7 @@ import {
   LuTrash2,
   LuX,
 } from 'react-icons/lu';
-import { BlockTree } from '../components/features/simulations/inodes/BlockTree';
+import { BlockDiagram } from '../components/features/simulations/inodes/BlockDiagram';
 import {
   BLOCK_SIZE,
   BRANCHES,
@@ -31,6 +28,7 @@ import {
   PTRS_PER_BLOCK,
   blocksForBytes,
   fmt,
+  fmtHex,
   formatBytes,
 } from '../features/simulations/inodes/blockMap';
 import { InodeSimulation } from '../features/simulations/inodes/simulation';
@@ -78,7 +76,6 @@ const PRESETS: { label: string; hint: string; blocks: number }[] = [
 export function InodesPage() {
   const [dataBlocks, setDataBlocks] = useState<number>(0);
   const [selectedLogical, setSelectedLogical] = useState<number | null>(null);
-  const [expanded, setExpanded] = useState<Set<string>>(() => new Set(['direct']));
   const [viewMode, setViewMode] = useState<'pointers' | 'metadata'>('pointers');
   const [selectedMeta, setSelectedMeta] = useState<InodeMetaItem | null>(null);
   const [sizeInput, setSizeInput] = useState<string>('');
@@ -118,36 +115,15 @@ export function InodesPage() {
     [map, selectedLogical, dataBlocks],
   );
 
-  const activeIds = useMemo(() => {
-    const ids = new Set<string>();
-    if (!resolution) return ids;
-    if (resolution.route === 'direct') {
-      ids.add('direct');
-    } else {
-      resolution.hops.forEach((h) => ids.add(h.id));
+  /** Select a logical block */
+  const selectLogical = useCallback((logical: number | null, blocks: number) => {
+    if (logical === null || blocks === 0) {
+      setSelectedLogical(null);
+      return;
     }
-    return ids;
-  }, [resolution]);
-
-  /** Select a logical block and open every index node on its path. */
-  const selectLogical = useCallback(
-    (logical: number | null, blocks: number) => {
-      if (logical === null || blocks === 0) {
-        setSelectedLogical(null);
-        return;
-      }
-      const clamped = Math.max(0, Math.min(blocks - 1, logical));
-      setSelectedLogical(clamped);
-      const res = map.resolve(clamped);
-      setExpanded((prev) => {
-        const next = new Set(prev);
-        if (res.route === 'direct') next.add('direct');
-        res.hops.forEach((h) => next.add(h.id));
-        return next;
-      });
-    },
-    [map],
-  );
+    const clamped = Math.max(0, Math.min(blocks - 1, logical));
+    setSelectedLogical(clamped);
+  }, []);
 
   /** Resize the file; the selection follows the last written block. */
   const resize = useCallback(
@@ -158,32 +134,6 @@ export function InodesPage() {
     },
     [selectLogical],
   );
-
-  const toggleNode = useCallback((id: string) => {
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const expandAllActive = useCallback(() => {
-    if (!resolution) return;
-    setExpanded((prev) => {
-      const next = new Set(prev);
-      next.add('direct');
-      BRANCHES.forEach((b) => {
-        if (map.isBranchAllocated(b, dataBlocks)) next.add(b);
-      });
-      resolution.hops.forEach((h) => next.add(h.id));
-      return next;
-    });
-  }, [resolution, map, dataBlocks]);
-
-  const collapseAll = useCallback(() => {
-    setExpanded(new Set(['direct']));
-  }, []);
 
   const applyTypedSize = () => {
     const value = parseFloat(sizeInput.replace(',', '.'));
@@ -399,13 +349,11 @@ export function InodesPage() {
                       onClick={() => {
                         if (isAllocated) {
                           selectLogical(i, dataBlocks);
-                          setExpanded((prev) => new Set([...prev, 'direct']));
                         }
                       }}
                       onKeyDown={(e) => {
                         if (isAllocated && (e.key === 'Enter' || e.key === ' ')) {
                           selectLogical(i, dataBlocks);
-                          setExpanded((prev) => new Set([...prev, 'direct']));
                         }
                       }}
                       role={isAllocated ? 'button' : undefined}
@@ -415,8 +363,8 @@ export function InodesPage() {
                       <span className="ptr-arrow">
                         <LuArrowRight className="icon-arrow" />
                       </span>
-                      <span className="stack-target ptr-target">
-                        {isAllocated ? `Bloque #${fmt(phys!)}` : '(Vacío / NULL)'}
+                      <span className="stack-target ptr-target font-mono">
+                        {isAllocated ? fmtHex(phys!) : '(Vacío / NULL)'}
                       </span>
                     </div>
                   );
@@ -438,18 +386,16 @@ export function InodesPage() {
                       id={`ptr-indirect-${slot - 11}`}
                       title={
                         isAllocated
-                          ? `${BRANCH_NAME[b]}: Raíz en Bloque #${fmt(node.physical)}. Clic para abrir rama en el árbol.`
+                          ? `${BRANCH_NAME[b]}: Raíz en ${fmtHex(node.physical)} (#${fmt(node.physical)}). Clic para abrir en el diagrama.`
                           : `${BRANCH_NAME[b]}: No reservado aún en disco.`
                       }
                       onClick={() => {
                         if (isAllocated) {
-                          toggleNode(b);
                           selectLogical(node.firstLogical, dataBlocks);
                         }
                       }}
                       onKeyDown={(e) => {
                         if (isAllocated && (e.key === 'Enter' || e.key === ' ')) {
-                          toggleNode(b);
                           selectLogical(node.firstLogical, dataBlocks);
                         }
                       }}
@@ -460,8 +406,8 @@ export function InodesPage() {
                       <span className="ptr-arrow">
                         <LuArrowRight className="icon-arrow" />
                       </span>
-                      <span className="stack-target ptr-target">
-                        {isAllocated ? `Bloque #${fmt(node.physical)}` : '(No reservado)'}
+                      <span className="stack-target ptr-target font-mono">
+                        {isAllocated ? fmtHex(node.physical) : '(No reservado)'}
                       </span>
                     </div>
                   );
@@ -503,53 +449,15 @@ export function InodesPage() {
           </div>
         </div>
 
-        {/* Columna 2: Árbol de direccionamiento (reemplaza al disco de 100 bloques) */}
+        {/* Columna 2: Diagrama de Bloques y Punteros con Flechas (Ext4) */}
         <div className="disk-column">
-          <div className="tree-panel">
-            <div className="tree-header-bar">
-              <div className="tree-header-info">
-                <LuFolderTree className="icon-tree-header" />
-                <div>
-                  <h3>Árbol de Direccionamiento de Bloques Ext4</h3>
-                  <p>
-                    Jerarquía real con 1,024 punteros por bloque de índices (4 KB ÷ 4 B). Solo se
-                    muestran bloques asignados.
-                  </p>
-                </div>
-              </div>
-              <div className="tree-header-actions">
-                <button
-                  type="button"
-                  className="btn-tree-action"
-                  onClick={expandAllActive}
-                  title="Expandir las ramas activas del archivo"
-                >
-                  <LuChevronDown /> Expandir ramas
-                </button>
-                <button
-                  type="button"
-                  className="btn-tree-action"
-                  onClick={collapseAll}
-                  title="Colapsar ramas para ver solo la raíz y directos"
-                >
-                  <LuChevronUp /> Colapsar
-                </button>
-              </div>
-            </div>
-
-            <div className="tree-panel-body" id="tree-panel-body">
-              <BlockTree
-                map={map}
-                inodeId={metadata.inode_id}
-                dataBlocks={dataBlocks}
-                expanded={expanded}
-                onToggle={toggleNode}
-                activeIds={activeIds}
-                selectedLogical={selectedLogical}
-                onSelectLogical={(l) => selectLogical(l, dataBlocks)}
-              />
-            </div>
-          </div>
+          <BlockDiagram
+            map={map}
+            inodeId={metadata.inode_id}
+            dataBlocks={dataBlocks}
+            selectedLogical={selectedLogical}
+            onSelectLogical={(l) => selectLogical(l, dataBlocks)}
+          />
         </div>
 
         {/* Columna 3: Todo el control de la simulación e inspección lógica */}
@@ -737,8 +645,8 @@ export function InodesPage() {
                     <div key={`res-hop-${i}`} className="hop-step hop-index">
                       <LuArrowRight className="hop-arrow" />
                       <span className="hop-tag">{h.level}</span>
-                      <span className="hop-val">
-                        #{fmt(h.physical)} [Entrada {fmt(h.entry)}]
+                      <span className="hop-val font-mono">
+                        {fmtHex(h.physical)} [Entrada {fmt(h.entry)}]
                       </span>
                     </div>
                   ))}
@@ -746,7 +654,7 @@ export function InodesPage() {
                   <div className="hop-step hop-data">
                     <LuArrowRight className="hop-arrow" />
                     <span className="hop-tag">Dato L {fmt(resolution.logical)}</span>
-                    <span className="hop-val">#{fmt(resolution.dataPhysical)}</span>
+                    <span className="hop-val font-mono">{fmtHex(resolution.dataPhysical)}</span>
                   </div>
                 </div>
 

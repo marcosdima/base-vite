@@ -252,6 +252,11 @@ export class BlockMap {
     return this.node({ branch: res.route as Branch, path: res.path }).ordinal;
   }
 
+  /** Physical block address allocated to a logical data block. */
+  dataPhysical(logical: number): number {
+    return this.resolve(logical).dataPhysical;
+  }
+
   /** Total blocks (data + index) owned by a file of `dataBlocks` data blocks. */
   totalBlocks(dataBlocks: number): number {
     return dataBlocks <= 0 ? 0 : this.dataOrdinal(dataBlocks - 1) + 1;
@@ -279,3 +284,6 @@ export function formatBytes(bytes: number): string {
 }
 
 export const fmt = (n: number): string => n.toLocaleString('es-AR');
+
+/** Formats a 32-bit physical block address into standard 8-digit hexadecimal: e.g. 0x00108000 */
+export const fmtHex = (n: number): string => '0x' + (n >>> 0).toString(16).padStart(8, '0');
