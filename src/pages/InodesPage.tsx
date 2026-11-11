@@ -2,8 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   LuArrowRight,
   LuBoxes,
-  LuChevronLeft,
-  LuChevronRight,
   LuCircleCheck,
   LuDisc,
   LuFileCode,
@@ -15,7 +13,6 @@ import {
   LuPause,
   LuPlay,
   LuPlus,
-  LuRotateCcw,
   LuTerminal,
   LuTrash2,
   LuX,
@@ -38,7 +35,6 @@ export function InodesPage() {
   // Starts completely empty (0 blocks / 0 KB) as requested
   const [allocatedBlocks, setAllocatedBlocks] = useState<number>(0);
   const [logicalPos, setLogicalPos] = useState<number>(1);
-  const [currentStepIdx, setCurrentStepIdx] = useState<number>(0);
   const [viewMode, setViewMode] = useState<'pointers' | 'metadata'>('pointers');
   const [selectedMeta, setSelectedMeta] = useState<InodeMetaItem | null>(null);
   const [isAutoLoading, setIsAutoLoading] = useState<boolean>(false);
@@ -203,9 +199,6 @@ export function InodesPage() {
     return sim.resolvePosition(validPos);
   }, [sim, logicalPos, allocatedBlocks]);
 
-  const steps = useMemo(() => resolution.steps || [], [resolution.steps]);
-  const currentStep = steps[currentStepIdx] || steps[0];
-
   // Auto-loading step timer
   useEffect(() => {
     if (!isAutoLoading) {
@@ -242,7 +235,6 @@ export function InodesPage() {
     setAllocatedBlocks((prev) => {
       const next = Math.min(28, prev + count);
       setLogicalPos(next);
-      setCurrentStepIdx(0);
       return next;
     });
   }, []);
@@ -252,27 +244,12 @@ export function InodesPage() {
     const clamped = Math.max(0, Math.min(28, targetCount));
     setAllocatedBlocks(clamped);
     setLogicalPos(Math.max(1, clamped));
-    setCurrentStepIdx(0);
   }, []);
 
   const handleSelectPos = (pos: number) => {
     if (pos > allocatedBlocks && allocatedBlocks > 0) return;
     setLogicalPos(pos);
-    setCurrentStepIdx(0);
   };
-
-  const handlePrevStep = () => {
-    setCurrentStepIdx((prev) => Math.max(0, prev - 1));
-  };
-
-  const handleNextStep = () => {
-    setCurrentStepIdx((prev) => Math.min(steps.length - 1, prev + 1));
-  };
-
-  // Check if a block is part of the current access path
-  const pathBlocks = useMemo(() => {
-    return new Set(steps.map((s) => s.disk_block));
-  }, [steps]);
 
   const progressPercent = (allocatedBlocks / 28) * 100;
 
@@ -625,17 +602,14 @@ export function InodesPage() {
               {structure.disk_blocks.map((block) => {
                 const isAllocated = block.role !== 'free';
                 const isTarget = isAllocated && block.id === resolution.physical_block;
-                const isFocused = isAllocated && block.id === currentStep?.disk_block;
-                const isPath = isAllocated && pathBlocks.has(block.id);
+                const isIndexRoute = isAllocated && block.id === resolution.index_block;
 
                 return (
                   <div
                     key={`disk-block-${block.id}`}
                     className={`matrix-cell cell-role-${block.role} ${
                       isTarget ? 'cell-active-target' : ''
-                    } ${isFocused ? 'cell-focus-highlight' : ''} ${
-                      isPath ? 'cell-path-member' : ''
-                    }`}
+                    } ${isIndexRoute ? 'cell-path-member' : ''}`}
                     id={`disk-cell-${block.id}`}
                     data-block-id={block.id}
                     data-block-role={block.role}
@@ -670,110 +644,37 @@ export function InodesPage() {
 
         {/* Columna derecha: simulación de carga (arriba) + tablas de índices (abajo) */}
         <div className="side-column">
-          {/* Simulación de fase de carga y resolución */}
+          {/* Resumen del estado de asignación y arquitectura Ext4 */}
           <div className="controller-column">
-            <section className="flow-controller-card">
-              <div className="step-controller-wrapper">
-                <div className="step-toolbar">
-                  <div className="step-indicator">
-                    <span className="pulse-indicator"></span>
-                    <div className="step-indicator-text">
-                      <strong id="step-counter-text">
-                        {allocatedBlocks > 0
-                          ? `Paso ${currentStepIdx + 1} de ${steps.length}`
-                          : 'Archivo Vacío'}
-                      </strong>
-                      <span className="step-progress-label" id="step-progress-label">
-                        {allocationInfo.phaseTitle}
-                      </span>
-                    </div>
-                  </div>
-                  <div style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>
-                    <button
-                      type="button"
-                      id="btn-step-reset"
-                      className="btn btn-ctrl btn-icon"
-                      title="Reiniciar a paso 1"
-                      onClick={() => setCurrentStepIdx(0)}
-                    >
-                      <LuRotateCcw />
-                    </button>
-                  </div>
-                </div>
-
-                <div className="step-progress-track" aria-hidden="true">
-                  <div
-                    className="step-progress-fill"
-                    id="step-progress-fill"
-                    style={{ width: `${progressPercent}%` }}
-                  ></div>
-                </div>
-
-                <div className="carousel" id="step-carousel">
-                  <div className="carousel-stage">
-                    <div className="carousel-viewport">
-                      <div className="carousel-track" id="carousel-track">
-                        <article className="carousel-card active">
-                          <div className="step-header-row">
-                            <span className="step-badge-tag">{allocationInfo.badge}</span>
-                            <h3 className="step-card-title">{allocationInfo.phaseTitle}</h3>
-                          </div>
-                          <p className="step-body-text">{allocationInfo.summary}</p>
-                          <p
-                            style={{
-                              fontSize: '0.82rem',
-                              color: 'var(--text-muted)',
-                              marginTop: '6px',
-                              lineHeight: '1.4',
-                            }}
-                          >
-                            {allocationInfo.details}
-                          </p>
-                        </article>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="carousel-controls">
-                    <button
-                      type="button"
-                      className="carousel-nav prev"
-                      id="carousel-prev"
-                      aria-label="Paso anterior"
-                      disabled={currentStepIdx === 0}
-                      onClick={handlePrevStep}
-                    >
-                      <LuChevronLeft />
-                    </button>
-                    <div
-                      className="carousel-dots"
-                      id="carousel-dots"
-                      role="tablist"
-                      aria-label="Pasos de la resolución"
-                    >
-                      {steps.map((_, idx) => (
-                        <button
-                          key={`step-dot-${idx}`}
-                          type="button"
-                          className={`dot ${idx === currentStepIdx ? 'active' : ''}`}
-                          role="tab"
-                          aria-label={`Ir al paso ${idx + 1}`}
-                          onClick={() => setCurrentStepIdx(idx)}
-                        ></button>
-                      ))}
-                    </div>
-                    <button
-                      type="button"
-                      className="carousel-nav next"
-                      id="carousel-next"
-                      aria-label="Paso siguiente"
-                      disabled={currentStepIdx === steps.length - 1}
-                      onClick={handleNextStep}
-                    >
-                      <LuChevronRight />
-                    </button>
-                  </div>
-                </div>
+            <section className="allocation-overview-card">
+              <div className="overview-header-row">
+                <span className="step-badge-tag">{allocationInfo.badge}</span>
+                <span className="overview-progress-tag">
+                  {allocatedBlocks} / 28 Bloques ({progressPercent.toFixed(0)}%)
+                </span>
               </div>
+              <h3 className="overview-card-title">{allocationInfo.phaseTitle}</h3>
+              <p className="overview-body-text">{allocationInfo.summary}</p>
+              <p className="overview-detail-text">{allocationInfo.details}</p>
+
+              <div className="step-progress-track" aria-hidden="true">
+                <div
+                  className="step-progress-fill"
+                  id="step-progress-fill"
+                  style={{ width: `${progressPercent}%` }}
+                ></div>
+              </div>
+
+              {allocatedBlocks > 0 && (
+                <div className="active-resolution-pill">
+                  <span className="res-pill-label">Lectura activa:</span>
+                  <span className="res-pill-val">
+                    Posición {resolution.logical_position} ➜ Bloque #
+                    {String(resolution.physical_block).padStart(2, '0')} ({resolution.pointer_label}
+                    )
+                  </span>
+                </div>
+              )}
             </section>
           </div>
 
