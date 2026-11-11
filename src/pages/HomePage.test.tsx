@@ -1,26 +1,25 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { render, screen } from '../test/render';
 import { HomePage } from './HomePage';
-import i18n from '../i18n';
 
 describe('HomePage', () => {
-  beforeEach(async () => {
-    await i18n.changeLanguage('en');
-  });
-
-  it('should render home page with title and description', () => {
+  it('should render the three giant simulation pads (Inodes, Procesos, Terminal)', () => {
     render(<HomePage />);
 
-    expect(screen.getByText('Home')).toBeInTheDocument();
-    expect(screen.getByText('Start building here.')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Inodes' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Procesos' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Terminal' })).toBeInTheDocument();
   });
 
-  it('should render the translated content when the language is Spanish', async () => {
-    await i18n.changeLanguage('es');
-
+  it('should link each pad to its respective simulation path', () => {
     render(<HomePage />);
 
-    expect(screen.getByText('Inicio')).toBeInTheDocument();
-    expect(screen.getByText('Empezá a construir desde acá.')).toBeInTheDocument();
+    const inodesPad = screen.getByRole('heading', { level: 2, name: 'Inodes' }).closest('a');
+    const processesPad = screen.getByRole('heading', { level: 2, name: 'Procesos' }).closest('a');
+    const terminalPad = screen.getByRole('heading', { level: 2, name: 'Terminal' }).closest('a');
+
+    expect(inodesPad).toHaveAttribute('href', '/inodes');
+    expect(processesPad).toHaveAttribute('href', '/processes');
+    expect(terminalPad).toHaveAttribute('href', '/terminal');
   });
 });

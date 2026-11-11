@@ -1,11 +1,10 @@
 import { createBrowserRouter } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell';
-import { RequireAuth } from '../components/auth/RequireAuth';
-import { DashboardPage } from '../pages/DashboardPage';
 import { HomePage } from '../pages/HomePage';
-import { LoginPage } from '../pages/LoginPage';
+import { InodesPage } from '../pages/InodesPage';
 import { NotFoundPage } from '../pages/NotFoundPage';
-import { SignInPage } from '../pages/SignInPage';
+import { ProcessesPage } from '../pages/ProcessesPage';
+import { TerminalPage } from '../pages/TerminalPage';
 
 export const router = createBrowserRouter([
   {
@@ -17,20 +16,16 @@ export const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: 'login',
-        element: <LoginPage />,
+        path: 'inodes',
+        element: <InodesPage />,
       },
       {
-        path: 'signin',
-        element: <SignInPage />,
+        path: 'processes',
+        element: <ProcessesPage />,
       },
       {
-        path: 'dashboard',
-        element: (
-          <RequireAuth>
-            <DashboardPage />
-          </RequireAuth>
-        ),
+        path: 'terminal',
+        element: <TerminalPage />,
       },
       {
         path: '*',

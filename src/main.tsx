@@ -5,6 +5,7 @@ import { RouterProvider } from 'react-router-dom';
 import { store } from './app/store';
 import { router } from './app/router';
 import './i18n';
+import './styles/simulations/index.css';
 import { AppThemeProvider } from './styles/AppThemeProvider';
 
 ReactDOM.createRoot(document.getElementById('app')!).render(

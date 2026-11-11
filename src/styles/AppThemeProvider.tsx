@@ -6,13 +6,12 @@ import { darkTheme, lightTheme, type Theme } from './theme';
 const STORAGE_KEY = 'starter-forge-theme';
 
 function getInitialTheme(): Theme {
-  if (typeof window === 'undefined') return lightTheme;
+  if (typeof window === 'undefined') return darkTheme;
 
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === 'dark') return darkTheme;
   if (stored === 'light') return lightTheme;
 
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? darkTheme : lightTheme;
+  return darkTheme;
 }
 
 interface ThemeContextValue {

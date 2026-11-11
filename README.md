@@ -56,9 +56,11 @@ src/
 │   ├── auth/         # Componentes de autenticación
 │   ├── features/     # Características funcionales (inputs, encuestas, switches)
 │   ├── layout/       # Layout de la aplicación (AppShell)
-│   └── ui/           # Componentes UI genéricos (próximamente)
+│   └── ui/           # Componentes UI genéricos (Terminal CLI, etc.)
 ├── features/         # Slices de Redux y lógica de dominio
-│   └── auth/         # Autenticación (slice, almacenamiento)
+│   ├── auth/         # Autenticación (slice, almacenamiento)
+│   ├── os/           # Sistema de archivos POSIX virtual
+│   └── simulations/  # Simuladores de SO (Inodos y Ciclo de vida de procesos)
 ├── i18n/             # Configuración de i18next y recursos de traducción
 ├── pages/            # Páginas de la aplicación
 ├── services/         # Clientes de API y capas de servicio

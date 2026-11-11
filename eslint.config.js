@@ -40,7 +40,7 @@ const sharedRules = {
 
 export default tseslint.config(
   {
-    ignores: ['dist/', 'node_modules/', 'pnpm-lock.yaml'],
+    ignores: ['dist/', 'node_modules/', 'pnpm-lock.yaml', 'django-code/'],
   },
 
   // ── JavaScript / JSX ────────────────────────────────────────────────

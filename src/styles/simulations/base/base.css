@@ -1,0 +1,36 @@
+/* ==========================================================================
+   ESTILOS BASE
+   ========================================================================== */
+
+body.dark-theme {
+  font-family: var(--font-sans);
+  background-color: var(--bg-body);
+  color: var(--text-main);
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+/* Iconos de Lucide */
+svg.lucide,
+.lucide {
+  width: 1.1em;
+  height: 1.1em;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Enlaces */
+a {
+  color: inherit;
+}
+
+/* Focus accesible */
+button:focus,
+.btn:focus,
+.matrix-cell:focus,
+a:focus {
+  outline: 2px solid var(--active-blue);
+  outline-offset: 2px;
+}

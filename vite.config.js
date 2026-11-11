@@ -26,7 +26,24 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
-      chunkSizeWarningLimit: 600,
+      chunkSizeWarningLimit: 800,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+                return 'vendor';
+              }
+              if (id.includes('@reduxjs') || id.includes('react-redux')) {
+                return 'redux';
+              }
+              if (id.includes('styled-components')) {
+                return 'styles';
+              }
+            }
+          },
+        },
+      },
     },
   };
 });
