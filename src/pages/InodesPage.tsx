@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  LuArrowDown,
   LuArrowRight,
   LuFileCode,
   LuFileText,
@@ -111,6 +112,46 @@ export function InodesPage() {
         : null,
     [map, selectedLogical, dataBlocks],
   );
+
+  const calcDetails = useMemo(() => {
+    if (!resolution) return null;
+    const L = resolution.logical;
+    if (resolution.route === 'direct') {
+      return {
+        title: 'Direccionamiento Directo',
+        desc: `0 ≤ L < 12 ➜ i_block[${L}]`,
+        offsetMath: `L = ${L}`,
+      };
+    }
+    if (resolution.route === 'simple') {
+      const N = L - 12;
+      return {
+        title: 'Indirecto Simple (1 nivel)',
+        desc: `N = L − 12 = ${fmt(N)}`,
+        offsetMath: `Entrada [${fmt(N)}] en tabla raíz de i_block[12]`,
+      };
+    }
+    if (resolution.route === 'double') {
+      const N = L - 1036;
+      const n1 = Math.floor(N / 1024);
+      const n2 = N % 1024;
+      return {
+        title: 'Indirecto Doble (2 niveles)',
+        desc: `N = L − 1.036 = ${fmt(N)}`,
+        offsetMath: `Subtabla N1: [${n1}]  │  Entrada N2: [${n2}]`,
+      };
+    }
+    const N = L - 1049612;
+    const n1 = Math.floor(N / (1024 * 1024));
+    const rem = N % (1024 * 1024);
+    const n2 = Math.floor(rem / 1024);
+    const n3 = rem % 1024;
+    return {
+      title: 'Indirecto Triple (3 niveles)',
+      desc: `N = L − 1.049.612 = ${fmt(N)}`,
+      offsetMath: `N1: [${n1}] ➜ N2: [${n2}] ➜ N3: [${n3}]`,
+    };
+  }, [resolution]);
 
   /** Select a logical block */
   const selectLogical = useCallback((logical: number | null, blocks: number) => {
@@ -592,76 +633,153 @@ export function InodesPage() {
               )}
             </div>
 
-            {/* Selector de posición lógica */}
-            <div className="logical-input-row">
-              <label htmlFor="logical-block-search">
-                <LuHash /> Bloque lógico L (0 a {dataBlocks > 0 ? fmt(dataBlocks - 1) : 0}):
-              </label>
-              <input
-                type="number"
-                id="logical-block-search"
-                min={0}
-                max={Math.max(0, dataBlocks - 1)}
-                value={selectedLogical ?? 0}
-                disabled={dataBlocks === 0}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value, 10);
-                  if (!isNaN(val)) selectLogical(val, dataBlocks);
-                }}
-              />
+            {/* Selector de posición lógica (posicionado limpiamente con encabezado y steppers) */}
+            <div className="logical-search-panel">
+              <div className="search-panel-top">
+                <label htmlFor="logical-block-search" className="search-label">
+                  <LuHash className="label-icon" />
+                  <span>Bloque Lógico a Consultar (L)</span>
+                </label>
+                <span className="search-range-pill">
+                  0 .. {dataBlocks > 0 ? fmt(dataBlocks - 1) : 0}
+                </span>
+              </div>
+
+              <div className="search-input-group">
+                <button
+                  type="button"
+                  className="btn-stepper btn-stepper-dec"
+                  onClick={() => selectLogical(Math.max(0, (selectedLogical ?? 0) - 1), dataBlocks)}
+                  disabled={dataBlocks === 0 || (selectedLogical ?? 0) <= 0}
+                  aria-label="Bloque anterior"
+                  title="Bloque lógico anterior (L - 1)"
+                >
+                  ◀
+                </button>
+                <div className="search-input-field">
+                  <span className="input-prefix font-mono">L =</span>
+                  <input
+                    type="number"
+                    id="logical-block-search"
+                    min={0}
+                    max={Math.max(0, dataBlocks - 1)}
+                    value={selectedLogical ?? 0}
+                    disabled={dataBlocks === 0}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10);
+                      if (!isNaN(val)) selectLogical(val, dataBlocks);
+                    }}
+                    placeholder="0"
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="btn-stepper btn-stepper-inc"
+                  onClick={() =>
+                    selectLogical(Math.min(dataBlocks - 1, (selectedLogical ?? 0) + 1), dataBlocks)
+                  }
+                  disabled={dataBlocks === 0 || (selectedLogical ?? 0) >= dataBlocks - 1}
+                  aria-label="Bloque siguiente"
+                  title="Bloque lógico siguiente (L + 1)"
+                >
+                  ▶
+                </button>
+              </div>
             </div>
 
-            {/* Desglose de traducción */}
+            {/* Desglose de cálculo y traducción */}
             {resolution ? (
               <div className="resolution-details-box">
+                {/* Métricas y resumen de lecturas */}
                 <div className="resolution-metric-row">
-                  <span className="res-lbl">Acceso a disco:</span>
+                  <span className="res-lbl">{calcDetails?.title}</span>
                   <span className="res-badge-reads">
                     {resolution.diskReads} lectura{resolution.diskReads === 1 ? '' : 's'} a disco
                   </span>
                 </div>
 
-                <div className="resolution-hops-chain">
-                  <div className="hop-step hop-inode">
-                    <span className="hop-tag">Inodo</span>
-                    <span className="hop-val">i_block[{resolution.slot}]</span>
-                  </div>
-
-                  {resolution.hops.map((h, i) => (
-                    <div key={`res-hop-${i}`} className="hop-step hop-index">
-                      <LuArrowRight className="hop-arrow" />
-                      <span className="hop-tag">{h.level}</span>
-                      <span className="hop-val font-mono">
-                        {fmtHex(h.physical)} [Entrada {fmt(h.entry)}]
-                      </span>
-                    </div>
-                  ))}
-
-                  <div className="hop-step hop-data">
-                    <LuArrowRight className="hop-arrow" />
-                    <span className="hop-tag">Dato L {fmt(resolution.logical)}</span>
-                    <span className="hop-val font-mono">{fmtHex(resolution.dataPhysical)}</span>
-                  </div>
-                </div>
-
+                {/* Tarjeta de cálculo matemático del desplazamiento */}
                 <div className="resolution-formula-box">
-                  <span className="formula-lbl">Fórmula de direccionamiento:</span>
+                  <div className="formula-header">
+                    <span className="formula-lbl">Fórmula de direccionamiento:</span>
+                    <span className="formula-offset-tag">{calcDetails?.desc}</span>
+                  </div>
+                  {calcDetails?.offsetMath && (
+                    <div className="formula-math-line font-mono">{calcDetails.offsetMath}</div>
+                  )}
                   <code className="formula-code">{resolution.formula}</code>
                 </div>
 
-                <div className="resolution-bytes-box">
-                  <span className="bytes-lbl">Rango de bytes en el archivo:</span>
-                  <span className="bytes-val">
-                    {fmt(resolution.logical * BLOCK_SIZE)} –{' '}
-                    {fmt((resolution.logical + 1) * BLOCK_SIZE - 1)} B
-                  </span>
+                {/* Cards verticales de resolución y pasos a disco */}
+                <div className="resolution-steps-container">
+                  {/* Paso 1: Ranura en Inodo */}
+                  <div className="res-step-card step-card-inode">
+                    <div className="step-card-header">
+                      <span className="step-badge">Paso 1 · Inodo</span>
+                      <span className="step-phys font-mono">Ranura i_block[{resolution.slot}]</span>
+                    </div>
+                    <div className="step-card-desc">
+                      {resolution.route === 'direct'
+                        ? 'Direccionamiento directo: apunta directamente al bloque físico'
+                        : `Apunta a la tabla de índices raíz (${BRANCH_NAME[resolution.route]})`}
+                    </div>
+                  </div>
+
+                  {/* Pasos intermedios: Tablas de índices N1, N2, N3 */}
+                  {resolution.hops.map((h, i) => (
+                    <div key={`res-hop-step-${i}`} className="res-step-wrapper">
+                      <div className="res-step-connector">
+                        <LuArrowDown className="connector-arrow" />
+                      </div>
+                      <div className="res-step-card step-card-index">
+                        <div className="step-card-header">
+                          <span className="step-badge">
+                            Paso {i + 2} · Índice {h.level}
+                          </span>
+                          <span className="step-phys font-mono">{fmtHex(h.physical)}</span>
+                        </div>
+                        <div className="step-card-body">
+                          <span className="step-entry font-mono">Entrada [{fmt(h.entry)}]</span>
+                          <span className="step-target-role">
+                            {i === resolution.hops.length - 1
+                              ? '➜ Puntero a bloque de datos'
+                              : '➜ Puntero a subtabla siguiente'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  {/* Paso final: Bloque físico de datos */}
+                  <div className="res-step-wrapper">
+                    <div className="res-step-connector">
+                      <LuArrowDown className="connector-arrow" />
+                    </div>
+                    <div className="res-step-card step-card-data">
+                      <div className="step-card-header">
+                        <span className="step-badge">Paso Final · Bloque de Datos</span>
+                        <span className="step-phys font-mono">
+                          {fmtHex(resolution.dataPhysical)}
+                        </span>
+                      </div>
+                      <div className="step-card-body">
+                        <span className="step-entry font-mono">
+                          Bloque lógico L = {fmt(resolution.logical)}
+                        </span>
+                        <span className="step-bytes font-mono">
+                          {fmt(resolution.logical * BLOCK_SIZE)} –{' '}
+                          {fmt((resolution.logical + 1) * BLOCK_SIZE - 1)} B
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
               <p className="resolution-empty-text">
                 {dataBlocks === 0
                   ? 'El archivo está vacío (0 KB). Agrega bloques para ver la resolución de direcciones.'
-                  : 'Selecciona cualquier bloque en el árbol o ingresa un número de bloque lógico arriba.'}
+                  : 'Selecciona cualquier bloque en el diagrama o ingresa un número de bloque lógico arriba.'}
               </p>
             )}
           </section>
