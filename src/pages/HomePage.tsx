@@ -18,7 +18,7 @@ const PADS: SimPadItem[] = [
     title: 'Inodes',
     path: '/inodes',
     icon: <LuLayers className="pad-icon" />,
-    tag: 'Ext4 · 100 Bloques',
+    tag: 'Ext4 · Diagrama de Bloques',
     description:
       'Estructura interna de inodos, indexación por punteros directos e indirectos y mapeo físico en disco.',
     accentClass: 'pad-inodes',
