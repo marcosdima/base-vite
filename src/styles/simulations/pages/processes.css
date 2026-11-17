@@ -84,6 +84,13 @@
   animation: narrate-in 0.35s ease;
 }
 
+.narration-actions-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .btn-theory-info {
   display: inline-flex;
   align-items: center;
@@ -99,10 +106,23 @@
   transition: all 0.2s ease;
 }
 
+.btn-theory-info.btn-pcb-theory {
+  background: rgba(168, 85, 247, 0.12);
+  color: #c084fc;
+  border-color: rgba(168, 85, 247, 0.35);
+}
+
 .btn-theory-info:hover {
   background: var(--active-blue);
   color: #fff;
   box-shadow: 0 2px 8px rgba(56, 189, 248, 0.35);
+}
+
+.btn-theory-info.btn-pcb-theory:hover {
+  background: #9333ea;
+  border-color: #9333ea;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(168, 85, 247, 0.4);
 }
 
 .btn-theory-info svg {
@@ -154,20 +174,44 @@
     stroke 0.3s ease;
 }
 
+.proc-arrows .arrow-head {
+  fill: var(--active-blue);
+  opacity: 0.78;
+  transition:
+    opacity 0.3s ease,
+    fill 0.3s ease;
+}
+
 .proc-arrows .arrow-label {
   font-family: var(--font-mono);
   font-size: 11px;
-  fill: #e2e8f0;
+  font-weight: 600;
+  fill: #f1f5f9;
   letter-spacing: 0.02em;
+  transition: fill 0.25s ease;
+}
+
+.proc-arrows .arrow-label.arrow-active {
+  fill: #ffffff;
 }
 
 .proc-arrows .arrow-label-bg {
-  fill: #0b0f19;
-  stroke: var(--border-main);
-  stroke-width: 0.8;
+  fill: rgba(11, 15, 25, 0.78);
+  stroke: rgba(56, 189, 248, 0.32);
+  stroke-width: 1;
+  transition:
+    fill 0.25s ease,
+    stroke 0.25s ease;
 }
 
-.proc-arrows.has-highlight .arrow-line {
+.proc-arrows .arrow-label-bg.arrow-active {
+  fill: rgba(12, 74, 110, 0.88);
+  stroke: #7dd3fc;
+  stroke-width: 1.4;
+}
+
+.proc-arrows.has-highlight .arrow-line,
+.proc-arrows.has-highlight .arrow-head {
   opacity: 0.2;
 }
 
@@ -175,6 +219,11 @@
   opacity: 1;
   stroke-width: 3.2;
   stroke: #7dd3fc;
+}
+
+.proc-arrows.has-highlight .arrow-head.arrow-active {
+  opacity: 1;
+  fill: #7dd3fc;
 }
 
 .proc-diagram {
@@ -261,6 +310,7 @@
 
 /* Tokens de procesos minimalistas */
 .proc-token {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -797,8 +847,10 @@
    -------------------------------------------------------------------------- */
 .pcb-inspector-panel {
   position: absolute;
+  top: 16px;
+  right: 16px;
   z-index: 100;
-  width: 250px;
+  width: 268px;
   background: var(--bg-card);
   border: 1px solid var(--border-main);
   border-radius: 12px;
@@ -819,6 +871,12 @@
   padding: 10px 14px;
   background: var(--bg-card-secondary);
   border-bottom: 1px solid var(--border-main);
+  cursor: grab;
+  user-select: none;
+}
+
+.pcb-inspector-panel.is-dragging .inspector-header {
+  cursor: grabbing;
 }
 
 .inspector-title {
@@ -913,6 +971,17 @@
 
 .btn-pcb-step.is-hidden {
   display: none !important;
+}
+
+.pcb-algo-pill {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(56, 189, 248, 0.14);
+  color: var(--active-blue);
+  border: 1px solid rgba(56, 189, 248, 0.3);
 }
 
 .proc-token.proc-next {

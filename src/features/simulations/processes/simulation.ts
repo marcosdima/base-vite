@@ -67,6 +67,13 @@ export class ProcessLifecycleSimulation {
       this.ready_queue.sort(
         (a, b) => (this.pcbs[a]?.priority ?? 5) - (this.pcbs[b]?.priority ?? 5),
       );
+    } else if (this.algorithm === 'SJF') {
+      // Shortest remaining / burst time first
+      this.ready_queue.sort(
+        (a, b) =>
+          (this.pcbs[a]?.remaining_time ?? this.pcbs[a]?.burst_time ?? 20) -
+          (this.pcbs[b]?.remaining_time ?? this.pcbs[b]?.burst_time ?? 20),
+      );
     }
     // FCFS and RR keep natural FIFO insertion order
   }
@@ -89,7 +96,7 @@ export class ProcessLifecycleSimulation {
     const algoName = event.payload?.algorithm ?? event.algorithm ?? 'FCFS';
     const quantum = event.payload?.quantum ?? event.quantum ?? 2;
 
-    if (!['FCFS', 'RR', 'PRIORITY'].includes(algoName)) {
+    if (!['FCFS', 'RR', 'SJF', 'PRIORITY'].includes(algoName)) {
       return [false, `Algoritmo desconocido: '${algoName}'.`];
     }
 
@@ -155,13 +162,18 @@ export class ProcessLifecycleSimulation {
     }
 
     if (event.burst_time !== undefined) {
+      if (pcb.state !== 'NEW') {
+        return [
+          false,
+          `La ráfaga total de P${pid} solo puede configurarse antes de ser admitido (estado NEW).`,
+        ];
+      }
       const burst = event.burst_time;
       if (typeof burst !== 'number' || !Number.isInteger(burst) || burst < 1 || burst > 20) {
         return [false, 'La ráfaga de CPU debe estar entre 1 y 20.'];
       }
-      const consumed = Math.max(0, pcb.burst_time - pcb.remaining_time);
       pcb.burst_time = burst;
-      pcb.remaining_time = Math.max(1, burst - consumed);
+      pcb.remaining_time = burst;
     }
 
     return [true, ''];

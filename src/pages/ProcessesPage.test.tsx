@@ -71,4 +71,52 @@ describe('ProcessesPage', () => {
     // New process P1 created
     expect(document.getElementById('proc-token-1')).toBeInTheDocument();
   });
+
+  it('filters PCB inspector fields to match the active scheduler and supports SJF', () => {
+    render(<ProcessesPage />);
+
+    // Select P1 in FCFS mode
+    fireEvent.click(document.getElementById('proc-token-1')!);
+    const inspector = document.getElementById('pcb-inspector')!;
+    expect(within(inspector).getByText(/Ráfaga total:/i)).toBeInTheDocument();
+    expect(within(inspector).queryByText(/Prioridad/i)).not.toBeInTheDocument();
+    expect(within(inspector).queryByText(/Quantum/i)).not.toBeInTheDocument();
+
+    // Switch to SJF
+    fireEvent.click(screen.getByRole('button', { name: 'SJF' }));
+    expect(screen.getByText(/SJF · Creación/i)).toBeInTheDocument();
+    fireEvent.click(document.getElementById('proc-token-2')!);
+    expect(within(inspector).getByText(/Ráfaga estimada:/i)).toBeInTheDocument();
+    expect(within(inspector).queryByText(/Prioridad/i)).not.toBeInTheDocument();
+    expect(within(inspector).queryByText(/Quantum/i)).not.toBeInTheDocument();
+
+    // Switch to Round Robin
+    fireEvent.click(screen.getByRole('button', { name: 'Round Robin' }));
+    fireEvent.click(document.getElementById('proc-token-1')!);
+    expect(within(inspector).getByText(/Quantum consumido:/i)).toBeInTheDocument();
+    expect(within(inspector).queryByText(/Prioridad/i)).not.toBeInTheDocument();
+
+    // Switch to Priority
+    fireEvent.click(screen.getByRole('button', { name: 'Prioridades' }));
+    fireEvent.click(document.getElementById('proc-token-2')!);
+    expect(within(inspector).getByText(/Prioridad \(1-5\):/i)).toBeInTheDocument();
+    expect(within(inspector).queryByText(/Quantum/i)).not.toBeInTheDocument();
+  });
+
+  it('allows editing burst_time only in NEW and locks it once admitted to READY', () => {
+    render(<ProcessesPage />);
+
+    // Switch to manual mode and create P1 (in NEW)
+    fireEvent.click(document.getElementById('tab-manual')!);
+    fireEvent.click(document.getElementById('btn-add-proc')!);
+    fireEvent.click(document.getElementById('proc-token-1')!);
+
+    const inspector = document.getElementById('pcb-inspector')!;
+    expect(within(inspector).getByTitle('Aumentar ráfaga')).toBeInTheDocument();
+
+    // Admit P1 -> READY
+    fireEvent.click(document.querySelector('[data-action="admit"]')!);
+    expect(within(inspector).queryByTitle('Aumentar ráfaga')).not.toBeInTheDocument();
+    expect(within(inspector).queryByTitle('Reducir ráfaga')).not.toBeInTheDocument();
+  });
 });

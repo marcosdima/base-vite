@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   LuBookOpen,
   LuCircleCheck,
@@ -31,42 +31,77 @@ import {
   SCRIPT_FCFS,
   SCRIPT_PRIORITY,
   SCRIPT_RR,
+  SCRIPT_SJF,
 } from '../features/simulations/processes/demoScripts';
 import { ProcessLifecycleSimulation } from '../features/simulations/processes/simulation';
 import type {
   ProcessControlBlock,
   ProcessEvent,
+  ProcessState,
   ProcessStateSnapshot,
   SchedulingAlgorithm,
 } from '../features/simulations/processes/types';
 import { usePlayback } from '../hooks/usePlayback';
-import { type ArrowData, type ArrowSpec, computeBezierArrow } from '../utils/bezier';
+import { type ArrowData, type ArrowSpec, type RectLike, computeBezierArrow } from '../utils/bezier';
+import { animateAlongCurve, animateFlip, resetElementMotion } from '../utils/motion';
 
 const ARROW_SPECS: readonly ArrowSpec[] = [
-  { from: ['NEW', 'bottom'], to: ['READY', 'left'], dist: 70, label: 'admitir' },
-  { from: ['READY', 'right'], to: ['RUNNING', 'left'], dist: 60, bow: 26, label: 'despachar' },
-  { from: ['RUNNING', 'top'], to: ['READY', 'top'], dist: 95, label: 'interrumpir' },
-  { from: ['RUNNING', 'right'], to: ['TERMINATED', 'bottom'], dist: 60, label: 'salir' },
+  { from: ['NEW', 'bottom'], to: ['READY', 'left'], dist: 70, labelOffset: 0, label: 'Admitir' },
+  {
+    from: ['READY', 'right'],
+    to: ['RUNNING', 'left'],
+    dist: 60,
+    bow: 26,
+    labelOffset: 16,
+    label: 'Despachar',
+  },
+  {
+    from: ['RUNNING', 'top'],
+    to: ['READY', 'top'],
+    dist: 95,
+    labelOffset: 16,
+    label: 'Interrumpir',
+  },
+  {
+    from: ['RUNNING', 'right'],
+    to: ['TERMINATED', 'bottom'],
+    dist: 60,
+    labelOffset: 0,
+    label: 'Salir',
+  },
   {
     from: ['RUNNING', 'bottom'],
     to: ['WAITING', 'right'],
     dist: 45,
+    labelOffset: 0,
     label: 'E/S o evento espera',
   },
-  { from: ['WAITING', 'left'], to: ['READY', 'bottom'], dist: 60, label: 'E/S o evento fin' },
+  {
+    from: ['WAITING', 'left'],
+    to: ['READY', 'bottom'],
+    dist: 60,
+    labelOffset: 0,
+    label: 'E/S o evento fin',
+  },
 ];
 
 export function ProcessesPage() {
   const [mode, setMode] = useState<'demo' | 'manual'>('demo');
   const [algorithm, setAlgorithm] = useState<SchedulingAlgorithm>('FCFS');
   const [selectedPid, setSelectedPid] = useState<number | null>(null);
+  const [manualActiveTransition, setManualActiveTransition] = useState<string | null>(null);
 
   // Theory modal & Alert dialog
   const [isTheoryOpen, setIsTheoryOpen] = useState<boolean>(false);
-  const [theoryTab, setTheoryTab] = useState<'fcfs' | 'rr' | 'priority' | 'sjf' | 'mlfq'>('fcfs');
+  const [theoryTab, setTheoryTab] = useState<'fcfs' | 'rr' | 'sjf' | 'priority' | 'mlfq'>('fcfs');
   const [alertInfo, setAlertInfo] = useState<{ title: string; message: string } | null>(null);
 
-  // Manual simulation state managed via useState (not accessing useRef in render)
+  // Draggable PCB inspector position relative to diagramWrapRef
+  const pcbPanelRef = useRef<HTMLDivElement | null>(null);
+  const [pcbPos, setPcbPos] = useState<{ x: number; y: number } | null>(null);
+  const [isDraggingPcb, setIsDraggingPcb] = useState<boolean>(false);
+
+  // Manual simulation state managed via useState
   const [manualSim, setManualSim] = useState(() => new ProcessLifecycleSimulation({ seed: 42 }));
   const [manualSnapshot, setManualSnapshot] = useState<ProcessStateSnapshot>(() =>
     manualSim.getStateSnapshot(),
@@ -77,16 +112,19 @@ export function ProcessesPage() {
     text: 'Crea procesos o ejecuta transiciones manuales para experimentar.',
   });
 
-  // SVG arrows
+  // SVG arrows & FLIP/Bezier token animation tracking
   const svgRef = useRef<SVGSVGElement | null>(null);
   const diagramWrapRef = useRef<HTMLDivElement | null>(null);
   const [arrows, setArrows] = useState<ArrowData[]>([]);
+  const prevTokenRectsRef = useRef<Record<number, { rect: RectLike; state: ProcessState }>>({});
 
   // Demo script resolution
   const currentScript = useMemo(() => {
     switch (algorithm) {
       case 'RR':
         return SCRIPT_RR;
+      case 'SJF':
+        return SCRIPT_SJF;
       case 'PRIORITY':
         return SCRIPT_PRIORITY;
       default:
@@ -128,6 +166,9 @@ export function ProcessesPage() {
   const activeSnapshot = mode === 'demo' ? demoSimulation.getStateSnapshot() : manualSnapshot;
 
   const currentStepData = currentScript[demoStepIdx] || currentScript[0];
+  const activeTransition =
+    mode === 'demo' ? (currentStepData?.transition ?? null) : manualActiveTransition;
+
   const narration =
     mode === 'demo'
       ? {
@@ -167,11 +208,103 @@ export function ProcessesPage() {
     };
   }, [updateArrows]);
 
+  // Drag handler for floating PCB inspector
+  const handlePcbDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
+    if ((e.target as HTMLElement).closest('button')) return;
+    if (!pcbPanelRef.current || !diagramWrapRef.current) return;
+
+    e.preventDefault();
+    const wrapRect = diagramWrapRef.current.getBoundingClientRect();
+    const panelRect = pcbPanelRef.current.getBoundingClientRect();
+
+    const startX = pcbPos ? pcbPos.x : panelRect.left - wrapRect.left;
+    const startY = pcbPos ? pcbPos.y : panelRect.top - wrapRect.top;
+    const startClientX = e.clientX;
+    const startClientY = e.clientY;
+
+    setIsDraggingPcb(true);
+
+    const handleMouseMove = (moveEvt: MouseEvent) => {
+      const dx = moveEvt.clientX - startClientX;
+      const dy = moveEvt.clientY - startClientY;
+      const maxX = Math.max(8, wrapRect.width - panelRect.width - 8);
+      const maxY = Math.max(8, wrapRect.height - panelRect.height - 8);
+      setPcbPos({
+        x: Math.max(8, Math.min(maxX, startX + dx)),
+        y: Math.max(8, Math.min(maxY, startY + dy)),
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingPcb(false);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  // Smooth Bezier/FLIP animations: tokens ride the exact SVG transition curve between state boxes
+  useLayoutEffect(() => {
+    const nextRects: Record<number, { rect: RectLike; state: ProcessState }> = {};
+    const pcbs = Object.values(activeSnapshot.pcbs);
+    const svgRect = svgRef.current?.getBoundingClientRect() ?? null;
+
+    // 1. Cancel any running animations first so we measure true resting layout positions
+    for (const pcb of pcbs) {
+      const el = document.getElementById(`proc-token-${pcb.pid}`);
+      if (el) resetElementMotion(el);
+    }
+
+    // 2. Measure resting rects and animate each moved token
+    for (const pcb of pcbs) {
+      const el = document.getElementById(`proc-token-${pcb.pid}`);
+      if (!el) continue;
+      const domRect = el.getBoundingClientRect();
+      const rect: RectLike = {
+        left: domRect.left,
+        top: domRect.top,
+        width: domRect.width,
+        height: domRect.height,
+      };
+      nextRects[pcb.pid] = { rect, state: pcb.state };
+
+      const prev = prevTokenRectsRef.current[pcb.pid];
+      if (!prev) continue;
+
+      const spec =
+        prev.state !== pcb.state
+          ? ARROW_SPECS.find((s) => s.from[0] === prev.state && s.to[0] === pcb.state)
+          : undefined;
+
+      if (spec && svgRect && svgRect.width > 0 && svgRect.height > 0) {
+        const fromNode = document.getElementById(`node-${spec.from[0]}`);
+        const toNode = document.getElementById(`node-${spec.to[0]}`);
+        if (fromNode && toNode) {
+          const arrow = computeBezierArrow(
+            fromNode.getBoundingClientRect(),
+            toNode.getBoundingClientRect(),
+            svgRect,
+            spec,
+          );
+          animateAlongCurve(el, prev.rect, rect, arrow.ctrl, svgRect);
+          continue;
+        }
+      }
+
+      animateFlip(el, prev.rect.left - rect.left, prev.rect.top - rect.top);
+    }
+
+    prevTokenRectsRef.current = nextRects;
+  }, [activeSnapshot]);
+
   // Handle Mode Change
   const handleModeChange = (newMode: 'demo' | 'manual') => {
     setIsPlaying(false);
     setMode(newMode);
     setSelectedPid(null);
+    setManualActiveTransition(null);
   };
 
   // Handle Algorithm Change
@@ -179,6 +312,7 @@ export function ProcessesPage() {
     resetDemoPlayback(0);
     setAlgorithm(newAlgo);
     setSelectedPid(null);
+    setManualActiveTransition(null);
     if (mode === 'manual') {
       const res = manualSim.applyEvent({
         type: 'set_algorithm',
@@ -203,6 +337,7 @@ export function ProcessesPage() {
   const applyManualEvent = (
     event: ProcessEvent,
     successNarration: { tag: string; text: string },
+    transitionLabel: string | null = null,
   ) => {
     const res = manualSim.applyEvent(event);
     if (!res.applied) {
@@ -213,38 +348,104 @@ export function ProcessesPage() {
     } else {
       setManualSnapshot(manualSim.getStateSnapshot());
       setManualNarration(successNarration);
+      setManualActiveTransition(transitionLabel);
     }
   };
 
   const handleCreateProcess = () => {
     const pid = nextPid;
     setNextPid((prev) => prev + 1);
-    const burst_time = Math.floor(Math.random() * 4) + 2;
+    const burst_time = Math.floor(Math.random() * 5) + 2;
     const priority = Math.floor(Math.random() * 5) + 1;
+
+    let detailText = `ráfaga=${burst_time}`;
+    if (algorithm === 'PRIORITY') {
+      detailText = `prioridad=${priority}, ráfaga=${burst_time}`;
+    } else if (algorithm === 'SJF') {
+      detailText = `ráfaga estimada=${burst_time}`;
+    } else if (algorithm === 'RR') {
+      detailText = `ráfaga=${burst_time}, quantum=${manualSnapshot.quantum}`;
+    }
+
     applyManualEvent(
       { type: 'create', pid, priority, burst_time },
       {
         tag: 'Creación Manual',
-        text: `Proceso P${pid} creado con ráfaga=${burst_time} y prioridad=${priority} en estado NEW.`,
+        text: `Proceso P${pid} creado en estado NEW (${detailText}).`,
       },
+      null,
     );
   };
 
+  const handleUpdatePcbField = (field: 'priority' | 'burst_time', delta: number) => {
+    if (selectedPid === null || mode !== 'manual') return;
+    const pcb = manualSnapshot.pcbs[selectedPid];
+    if (!pcb || pcb.state === 'TERMINATED') return;
+
+    if (field === 'priority') {
+      const nextPrio = Math.min(5, Math.max(1, pcb.priority + delta));
+      if (nextPrio === pcb.priority) return;
+      applyManualEvent(
+        { type: 'update_pcb', pid: selectedPid, priority: nextPrio },
+        {
+          tag: 'Actualización de PCB',
+          text: `Prioridad de P${selectedPid} actualizada a ${nextPrio}.`,
+        },
+      );
+    } else {
+      const nextBurst = Math.min(20, Math.max(1, pcb.burst_time + delta));
+      if (nextBurst === pcb.burst_time) return;
+      applyManualEvent(
+        { type: 'update_pcb', pid: selectedPid, burst_time: nextBurst },
+        {
+          tag: 'Actualización de PCB',
+          text: `Ráfaga de CPU de P${selectedPid} ajustada a ${nextBurst}.`,
+        },
+      );
+    }
+  };
+
   const handleManualTick = () => {
-    applyManualEvent(
-      { type: 'tick' },
-      {
+    const prevRunning = manualSnapshot.running;
+    const res = manualSim.applyEvent({ type: 'tick' });
+    if (!res.applied) {
+      setAlertInfo({
+        title: 'Acción Rechazada por el SO',
+        message: res.reason || 'La CPU está inactiva.',
+      });
+      return;
+    }
+    const nextSnap = manualSim.getStateSnapshot();
+    setManualSnapshot(nextSnap);
+
+    if (prevRunning !== null && nextSnap.pcbs[prevRunning]?.state === 'TERMINATED') {
+      setManualActiveTransition('Salir');
+      setManualNarration({
+        tag: 'Tick CPU · Fin de Ráfaga',
+        text: `P${prevRunning} agotó su tiempo restante en el ciclo ${nextSnap.current_time} y pasó a TERMINATED.`,
+      });
+    } else if (prevRunning !== null && nextSnap.pcbs[prevRunning]?.state === 'READY') {
+      setManualActiveTransition('Interrumpir');
+      setManualNarration({
+        tag: 'Tick CPU · Quantum Expirado',
+        text: `P${prevRunning} agotó su quantum (${nextSnap.quantum} ticks) y fue desalojado hacia READY.`,
+      });
+    } else {
+      setManualActiveTransition(null);
+      setManualNarration({
         tag: 'Tick CPU',
-        text: `Avanzó 1 ciclo de reloj (CPU Clock: ${manualSnapshot.current_time + 1}).`,
-      },
-    );
+        text: `Avanzó 1 ciclo de reloj (CPU Clock: ${nextSnap.current_time}).`,
+      });
+    }
   };
 
   const handleManualReset = () => {
     const newSim = new ProcessLifecycleSimulation({ seed: Date.now() });
+    newSim.applyEvent({ type: 'set_algorithm', payload: { algorithm } });
     setManualSim(newSim);
     setNextPid(1);
     setSelectedPid(null);
+    setManualActiveTransition(null);
     setManualSnapshot(newSim.getStateSnapshot());
     setManualNarration({
       tag: 'Reinicio Manual',
@@ -273,6 +474,7 @@ export function ProcessesPage() {
             tag: 'Admisión Manual',
             text: `Proceso P${target} admitido en la cola READY.`,
           },
+          'Admitir',
         );
         break;
       }
@@ -289,8 +491,9 @@ export function ProcessesPage() {
           { type: 'dispatch', pid: next },
           {
             tag: 'Despacho Manual',
-            text: `Planificador despacha a P${next} al estado RUNNING.`,
+            text: `Planificador (${algorithm}) despacha a P${next} al estado RUNNING.`,
           },
+          'Despachar',
         );
         break;
       }
@@ -308,6 +511,7 @@ export function ProcessesPage() {
             tag: 'Interrupción Manual',
             text: `Proceso P${manualSnapshot.running} desalojado de la CPU hacia READY.`,
           },
+          'Interrumpir',
         );
         break;
       }
@@ -325,6 +529,7 @@ export function ProcessesPage() {
             tag: 'Bloqueo por E/S',
             text: `Proceso P${manualSnapshot.running} bloqueado en espera de E/S (WAITING).`,
           },
+          'E/S o evento espera',
         );
         break;
       }
@@ -346,6 +551,7 @@ export function ProcessesPage() {
             tag: 'Fin de E/S',
             text: `Operación de E/S completada para P${target}. Reubicado en READY.`,
           },
+          'E/S o evento fin',
         );
         break;
       }
@@ -363,30 +569,72 @@ export function ProcessesPage() {
             tag: 'Salida de Proceso',
             text: `Proceso P${manualSnapshot.running} terminó su ejecución (TERMINATED).`,
           },
+          'Salir',
         );
         break;
       }
     }
   };
 
-  // Group processes by state
+  // Group processes by state respecting actual queue order in READY, WAITING, and TERMINATED
   const processesByState = useMemo(() => {
-    const map: Record<string, ProcessControlBlock[]> = {
-      NEW: [],
-      READY: [],
-      RUNNING: [],
-      TERMINATED: [],
-      WAITING: [],
+    const newList = Object.values(activeSnapshot.pcbs).filter((p) => p.state === 'NEW');
+    const readyList = activeSnapshot.ready_queue
+      .map((pid) => activeSnapshot.pcbs[pid])
+      .filter((p): p is ProcessControlBlock => Boolean(p));
+    const runningList =
+      activeSnapshot.running !== null && activeSnapshot.pcbs[activeSnapshot.running]
+        ? [activeSnapshot.pcbs[activeSnapshot.running]!]
+        : [];
+    const waitingList = activeSnapshot.waiting_queue
+      .map((pid) => activeSnapshot.pcbs[pid])
+      .filter((p): p is ProcessControlBlock => Boolean(p));
+    const terminatedList = activeSnapshot.terminated
+      .map((pid) => activeSnapshot.pcbs[pid])
+      .filter((p): p is ProcessControlBlock => Boolean(p));
+
+    return {
+      NEW: newList,
+      READY: readyList,
+      RUNNING: runningList,
+      WAITING: waitingList,
+      TERMINATED: terminatedList,
     };
-    Object.values(activeSnapshot.pcbs).forEach((p) => {
-      if (map[p.state]) {
-        map[p.state]!.push(p);
-      }
-    });
-    return map;
   }, [activeSnapshot]);
 
   const selectedPcb = selectedPid !== null ? activeSnapshot.pcbs[selectedPid] : null;
+
+  const renderProcessToken = (p: ProcessControlBlock) => {
+    const isSelected = selectedPid === p.pid;
+    const isNext = p.state === 'READY' && activeSnapshot.next_scheduled === p.pid;
+    const stateClass =
+      p.state === 'RUNNING'
+        ? 'proc-running'
+        : p.state === 'WAITING'
+          ? 'proc-waiting'
+          : p.state === 'TERMINATED'
+            ? 'proc-terminated'
+            : '';
+
+    return (
+      <div
+        key={`proc-${p.pid}`}
+        className={`proc-token ${stateClass} ${isSelected ? 'selected proc-selected' : ''} ${
+          isNext ? 'proc-next' : ''
+        }`.trim()}
+        id={`proc-token-${p.pid}`}
+        onClick={() => setSelectedPid(p.pid)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') setSelectedPid(p.pid);
+        }}
+        title={`Proceso P${p.pid} (Clic para ver PCB)`}
+        role="button"
+        tabIndex={0}
+      >
+        P{p.pid}
+      </div>
+    );
+  };
 
   return (
     <section className="process-sim">
@@ -417,37 +665,60 @@ export function ProcessesPage() {
       {/* 2. Componente del Gráfico con Diagrama Centrado */}
       <div className="proc-diagram-card">
         <div className="proc-diagram-wrap" ref={diagramWrapRef}>
-          <svg className="proc-arrows" ref={svgRef} aria-hidden="true">
-            <defs>
-              <marker
-                id="proc-arrowhead"
-                markerWidth="6"
-                markerHeight="6"
-                refX="5"
-                refY="3"
-                orient="auto"
-              >
-                <path d="M0,0 L6,3 L0,6 Z" fill="var(--active-blue)" />
-              </marker>
-            </defs>
-            {arrows.map((arr, i) => (
-              <g key={`arrow-${i}`}>
-                <path
-                  className="arrow-line"
-                  d={arr.d}
-                  markerEnd="url(#proc-arrowhead)"
-                  data-label={arr.label}
-                />
-                <text
-                  className="arrow-label"
-                  x={arr.labelPos.x}
-                  y={arr.labelPos.y}
-                  textAnchor="middle"
-                >
-                  {arr.label}
-                </text>
-              </g>
-            ))}
+          <svg
+            className={`proc-arrows ${activeTransition ? 'has-highlight' : ''}`}
+            ref={svgRef}
+            aria-hidden="true"
+          >
+            {/* First layer: Bezier curves + centered arrowhead triangles */}
+            {arrows.map((arr, i) => {
+              const isActive =
+                activeTransition !== null &&
+                arr.label.toLowerCase() === activeTransition.toLowerCase();
+              return (
+                <g key={`arrow-geo-${i}`}>
+                  <path
+                    className={`arrow-line ${isActive ? 'arrow-active' : ''}`}
+                    d={arr.d}
+                    data-label={arr.label}
+                  />
+                  <path
+                    className={`arrow-head ${isActive ? 'arrow-active' : ''}`}
+                    d={arr.headPath}
+                  />
+                </g>
+              );
+            })}
+            {/* Second layer: Translucent pill backgrounds + centered labels */}
+            {arrows.map((arr, i) => {
+              const isActive =
+                activeTransition !== null &&
+                arr.label.toLowerCase() === activeTransition.toLowerCase();
+              const pillW = Math.max(58, arr.label.length * 7.1 + 18);
+              const pillH = 22;
+              return (
+                <g key={`arrow-label-${i}`} className="arrow-label-group">
+                  <rect
+                    className={`arrow-label-bg ${isActive ? 'arrow-active' : ''}`}
+                    x={arr.labelPos.x - pillW / 2}
+                    y={arr.labelPos.y - pillH / 2}
+                    width={pillW}
+                    height={pillH}
+                    rx={6}
+                    ry={6}
+                  />
+                  <text
+                    className={`arrow-label ${isActive ? 'arrow-active' : ''}`}
+                    x={arr.labelPos.x}
+                    y={arr.labelPos.y}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                  >
+                    {arr.label}
+                  </text>
+                </g>
+              );
+            })}
           </svg>
 
           <div className="proc-diagram" id="proc-diagram">
@@ -457,22 +728,7 @@ export function ProcessesPage() {
                 <LuInbox /> New
               </div>
               <div className="proc-list" id="list-NEW">
-                {processesByState.NEW?.map((p) => (
-                  <div
-                    key={`proc-${p.pid}`}
-                    className={`proc-token ${selectedPid === p.pid ? 'selected' : ''}`}
-                    id={`proc-token-${p.pid}`}
-                    onClick={() => setSelectedPid(p.pid)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') setSelectedPid(p.pid);
-                    }}
-                    title={`Proceso P${p.pid} (Clic para ver PCB)`}
-                    role="button"
-                    tabIndex={0}
-                  >
-                    P{p.pid}
-                  </div>
-                ))}
+                {processesByState.NEW.map(renderProcessToken)}
               </div>
             </div>
 
@@ -482,22 +738,7 @@ export function ProcessesPage() {
                 <LuList /> Ready
               </div>
               <div className="proc-list" id="list-READY">
-                {processesByState.READY?.map((p) => (
-                  <div
-                    key={`proc-${p.pid}`}
-                    className={`proc-token ${selectedPid === p.pid ? 'selected' : ''}`}
-                    id={`proc-token-${p.pid}`}
-                    onClick={() => setSelectedPid(p.pid)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') setSelectedPid(p.pid);
-                    }}
-                    title={`Proceso P${p.pid} (Clic para ver PCB)`}
-                    role="button"
-                    tabIndex={0}
-                  >
-                    P{p.pid}
-                  </div>
-                ))}
+                {processesByState.READY.map(renderProcessToken)}
               </div>
             </div>
 
@@ -507,22 +748,7 @@ export function ProcessesPage() {
                 <LuCpu /> Running
               </div>
               <div className="proc-list" id="list-RUNNING">
-                {processesByState.RUNNING?.map((p) => (
-                  <div
-                    key={`proc-${p.pid}`}
-                    className={`proc-token ${selectedPid === p.pid ? 'selected' : ''}`}
-                    id={`proc-token-${p.pid}`}
-                    onClick={() => setSelectedPid(p.pid)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') setSelectedPid(p.pid);
-                    }}
-                    title={`Proceso P${p.pid} (Clic para ver PCB)`}
-                    role="button"
-                    tabIndex={0}
-                  >
-                    P{p.pid}
-                  </div>
-                ))}
+                {processesByState.RUNNING.map(renderProcessToken)}
               </div>
             </div>
 
@@ -532,22 +758,7 @@ export function ProcessesPage() {
                 <LuCircleCheck /> Terminated
               </div>
               <div className="proc-list" id="list-TERMINATED">
-                {processesByState.TERMINATED?.map((p) => (
-                  <div
-                    key={`proc-${p.pid}`}
-                    className={`proc-token ${selectedPid === p.pid ? 'selected' : ''}`}
-                    id={`proc-token-${p.pid}`}
-                    onClick={() => setSelectedPid(p.pid)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') setSelectedPid(p.pid);
-                    }}
-                    title={`Proceso P${p.pid} (Clic para ver PCB)`}
-                    role="button"
-                    tabIndex={0}
-                  >
-                    P{p.pid}
-                  </div>
-                ))}
+                {processesByState.TERMINATED.map(renderProcessToken)}
               </div>
             </div>
 
@@ -557,39 +768,34 @@ export function ProcessesPage() {
                 <LuClock /> Waiting
               </div>
               <div className="proc-list" id="list-WAITING">
-                {processesByState.WAITING?.map((p) => (
-                  <div
-                    key={`proc-${p.pid}`}
-                    className={`proc-token ${selectedPid === p.pid ? 'selected' : ''}`}
-                    id={`proc-token-${p.pid}`}
-                    onClick={() => setSelectedPid(p.pid)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') setSelectedPid(p.pid);
-                    }}
-                    title={`Proceso P${p.pid} (Clic para ver PCB)`}
-                    role="button"
-                    tabIndex={0}
-                  >
-                    P{p.pid}
-                  </div>
-                ))}
+                {processesByState.WAITING.map(renderProcessToken)}
               </div>
             </div>
           </div>
 
-          {/* Inspector Flotante / Tooltip de PCB */}
+          {/* Inspector Flotante Arrastable de PCB (Solo datos de la simulación para el algoritmo activo) */}
           <div
-            className={`pcb-inspector-panel ${selectedPcb ? '' : 'is-hidden'}`}
+            ref={pcbPanelRef}
+            className={`pcb-inspector-panel ${selectedPcb ? '' : 'is-hidden'} ${
+              isDraggingPcb ? 'is-dragging' : ''
+            }`}
             id="pcb-inspector"
+            style={pcbPos ? { left: pcbPos.x, top: pcbPos.y, right: 'auto' } : undefined}
           >
             {selectedPcb && (
               <>
-                <div className="inspector-header">
+                <div
+                  className="inspector-header"
+                  role="presentation"
+                  onMouseDown={handlePcbDragStart}
+                  title="Arrastrar tarjeta PCB"
+                >
                   <div className="inspector-title">
                     <LuFileText />
                     <span>
                       PCB · <strong id="pcb-pid-title">P{selectedPcb.pid}</strong>
                     </span>
+                    <span className="pcb-algo-pill">{algorithm}</span>
                   </div>
                   <button
                     type="button"
@@ -608,34 +814,84 @@ export function ProcessesPage() {
                       {selectedPcb.state}
                     </span>
                   </div>
-                  <div className="pcb-field">
-                    <span className="pcb-key">Prioridad (1-5):</span>
-                    <span className="pcb-val-group">
-                      <span className="pcb-val" id="pcb-priority-val">
-                        {selectedPcb.priority}
+
+                  {algorithm === 'PRIORITY' && (
+                    <div className="pcb-field">
+                      <span className="pcb-key">Prioridad (1-5):</span>
+                      <span className="pcb-val-group">
+                        {mode === 'manual' && selectedPcb.state !== 'TERMINATED' && (
+                          <button
+                            type="button"
+                            className="btn-pcb-step"
+                            title="Mayor prioridad"
+                            onClick={() => handleUpdatePcbField('priority', -1)}
+                          >
+                            -
+                          </button>
+                        )}
+                        <span className="pcb-val" id="pcb-priority-val">
+                          {selectedPcb.priority}
+                        </span>
+                        {mode === 'manual' && selectedPcb.state !== 'TERMINATED' && (
+                          <button
+                            type="button"
+                            className="btn-pcb-step"
+                            title="Menor prioridad"
+                            onClick={() => handleUpdatePcbField('priority', 1)}
+                          >
+                            +
+                          </button>
+                        )}
                       </span>
-                    </span>
-                  </div>
+                    </div>
+                  )}
+
                   <div className="pcb-field">
-                    <span className="pcb-key">Ráfaga total:</span>
+                    <span className="pcb-key">
+                      {algorithm === 'SJF' ? 'Ráfaga estimada:' : 'Ráfaga total:'}
+                    </span>
                     <span className="pcb-val-group">
+                      {mode === 'manual' && selectedPcb.state === 'NEW' && (
+                        <button
+                          type="button"
+                          className="btn-pcb-step"
+                          title="Reducir ráfaga"
+                          onClick={() => handleUpdatePcbField('burst_time', -1)}
+                        >
+                          -
+                        </button>
+                      )}
                       <span className="pcb-val" id="pcb-burst-val">
                         {selectedPcb.burst_time}
                       </span>
+                      {mode === 'manual' && selectedPcb.state === 'NEW' && (
+                        <button
+                          type="button"
+                          className="btn-pcb-step"
+                          title="Aumentar ráfaga"
+                          onClick={() => handleUpdatePcbField('burst_time', 1)}
+                        >
+                          +
+                        </button>
+                      )}
                     </span>
                   </div>
+
                   <div className="pcb-field">
                     <span className="pcb-key">Tiempo restante:</span>{' '}
                     <span className="pcb-val" id="pcb-remaining-val">
                       {selectedPcb.remaining_time}
                     </span>
                   </div>
-                  <div className="pcb-field">
-                    <span className="pcb-key">Quantum consumido:</span>{' '}
-                    <span className="pcb-val" id="pcb-quantum-val">
-                      {selectedPcb.quantum_used}
-                    </span>
-                  </div>
+
+                  {algorithm === 'RR' && (
+                    <div className="pcb-field">
+                      <span className="pcb-key">Quantum consumido:</span>{' '}
+                      <span className="pcb-val" id="pcb-quantum-val">
+                        {selectedPcb.quantum_used} / {activeSnapshot.quantum}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -666,6 +922,14 @@ export function ProcessesPage() {
                   title="Planificador Round Robin con Quantum"
                 >
                   Round Robin
+                </button>
+                <button
+                  type="button"
+                  className={`btn-algo-chip ${algorithm === 'SJF' ? 'active' : ''}`}
+                  onClick={() => handleAlgoChange('SJF')}
+                  title="Planificador Shortest Job First (Trabajo más corto primero)"
+                >
+                  SJF
                 </button>
                 <button
                   type="button"
@@ -883,7 +1147,7 @@ export function ProcessesPage() {
         </div>
       </div>
 
-      {/* Modal Flotante de Teoría (Políticas del planificador) */}
+      {/* Modal: Guía Teórica de Políticas del Planificador */}
       {isTheoryOpen && (
         <div className="theory-modal-backdrop" id="theory-modal">
           <div
@@ -925,17 +1189,17 @@ export function ProcessesPage() {
               </button>
               <button
                 type="button"
-                className={`btn-modal-tab ${theoryTab === 'priority' ? 'active' : ''}`}
-                onClick={() => setTheoryTab('priority')}
-              >
-                Prioridades
-              </button>
-              <button
-                type="button"
                 className={`btn-modal-tab ${theoryTab === 'sjf' ? 'active' : ''}`}
                 onClick={() => setTheoryTab('sjf')}
               >
                 SJF / SRTF
+              </button>
+              <button
+                type="button"
+                className={`btn-modal-tab ${theoryTab === 'priority' ? 'active' : ''}`}
+                onClick={() => setTheoryTab('priority')}
+              >
+                Prioridades
               </button>
               <button
                 type="button"
@@ -995,29 +1259,6 @@ export function ProcessesPage() {
                 </div>
               )}
 
-              {theoryTab === 'priority' && (
-                <div className="theory-tab-content active" id="tab-content-priority">
-                  <h4>Planificación por Prioridades</h4>
-                  <span className="algo-badge">Preemptivo o No Preemptivo</span>
-                  <p>
-                    A cada proceso se le asigna un valor numérico de prioridad. La CPU se asigna al
-                    proceso de mayor prioridad disponible (en este simulador, 1 es la máxima
-                    prioridad y 5 la mínima).
-                  </p>
-                  <div className="theory-pros-cons">
-                    <div className="pro">
-                      <strong>Ventaja:</strong> Permite priorizar tareas críticas del sistema
-                      operativo o procesos de tiempo real sobre tareas en segundo plano.
-                    </div>
-                    <div className="con">
-                      <strong>Desventaja:</strong> Inanición (Starvation): los procesos de baja
-                      prioridad pueden esperar indefinidamente si siguen llegando procesos
-                      prioritarios. Se soluciona con <em>envejecimiento (aging)</em>.
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {theoryTab === 'sjf' && (
                 <div className="theory-tab-content active" id="tab-content-sjf">
                   <h4>Shortest Job First / Shortest Remaining Time First</h4>
@@ -1036,6 +1277,29 @@ export function ProcessesPage() {
                       <strong>Desventaja:</strong> En la práctica es imposible conocer con exactitud
                       la duración de la próxima ráfaga de CPU; se debe estimar mediante promedios
                       exponenciales.
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {theoryTab === 'priority' && (
+                <div className="theory-tab-content active" id="tab-content-priority">
+                  <h4>Planificación por Prioridades</h4>
+                  <span className="algo-badge">Preemptivo o No Preemptivo</span>
+                  <p>
+                    A cada proceso se le asigna un valor numérico de prioridad. La CPU se asigna al
+                    proceso de mayor prioridad disponible (en este simulador, 1 es la máxima
+                    prioridad y 5 la mínima).
+                  </p>
+                  <div className="theory-pros-cons">
+                    <div className="pro">
+                      <strong>Ventaja:</strong> Permite priorizar tareas críticas del sistema
+                      operativo o procesos de tiempo real sobre tareas en segundo plano.
+                    </div>
+                    <div className="con">
+                      <strong>Desventaja:</strong> Inanición (Starvation): los procesos de baja
+                      prioridad pueden esperar indefinidamente si siguen llegando procesos
+                      prioritarios. Se soluciona con <em>envejecimiento (aging)</em>.
                     </div>
                   </div>
                 </div>

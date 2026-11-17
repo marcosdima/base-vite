@@ -1,6 +1,6 @@
 export type ProcessState = 'NEW' | 'READY' | 'RUNNING' | 'WAITING' | 'TERMINATED';
 
-export type SchedulingAlgorithm = 'FCFS' | 'RR' | 'PRIORITY';
+export type SchedulingAlgorithm = 'FCFS' | 'RR' | 'SJF' | 'PRIORITY';
 
 export interface ProcessControlBlock {
   pid: number;

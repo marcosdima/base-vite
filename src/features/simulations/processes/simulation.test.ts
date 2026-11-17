@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ProcessLifecycleSimulation } from './simulation';
-import { SCRIPT_FCFS, SCRIPT_PRIORITY, SCRIPT_RR } from './demoScripts';
+import { SCRIPT_FCFS, SCRIPT_PRIORITY, SCRIPT_RR, SCRIPT_SJF } from './demoScripts';
 
 describe('ProcessLifecycleSimulation', () => {
   it('CA1: initial state has no processes, running=null, algorithm="FCFS"', () => {
@@ -127,19 +127,55 @@ describe('ProcessLifecycleSimulation', () => {
     expect(sim.getNextScheduledPid()).toBe(2);
   });
 
-  it('CA8: update_pcb allows updating priority and burst_time in manual mode', () => {
+  it('CA7b: under SJF, ready_queue orders by remaining_time ascending (shortest job first)', () => {
+    const sim = new ProcessLifecycleSimulation();
+    const events = [
+      { type: 'set_algorithm' as const, payload: { algorithm: 'SJF' as const } },
+      { type: 'create' as const, pid: 1, burst_time: 6 },
+      { type: 'create' as const, pid: 2, burst_time: 2 },
+      { type: 'create' as const, pid: 3, burst_time: 4 },
+      { type: 'admit' as const, pid: 1 },
+      { type: 'admit' as const, pid: 2 },
+      { type: 'admit' as const, pid: 3 },
+    ];
+    sim.rebuild(events);
+
+    expect(sim.ready_queue).toEqual([2, 3, 1]);
+    expect(sim.getNextScheduledPid()).toBe(2);
+  });
+
+  it('CA8: update_pcb allows updating priority anytime before TERMINATED, and burst_time only in NEW', () => {
     const sim = new ProcessLifecycleSimulation();
     const events = [
       { type: 'set_algorithm' as const, payload: { algorithm: 'PRIORITY' as const } },
       { type: 'create' as const, pid: 1, priority: 3, burst_time: 3 },
       { type: 'create' as const, pid: 2, priority: 2, burst_time: 2 },
-      { type: 'admit' as const, pid: 1 },
-      { type: 'admit' as const, pid: 2 },
     ];
     sim.rebuild(events);
+
+    // Burst time can be edited while in NEW
+    const burstInNew = sim.dispatch('apply', {
+      events: sim.applied_events,
+      event: { type: 'update_pcb', pid: 1, burst_time: 8 },
+    });
+    expect(burstInNew.applied).toBe(true);
+    expect(sim.pcbs[1]?.burst_time).toBe(8);
+    expect(sim.pcbs[1]?.remaining_time).toBe(8);
+
+    // Admit both to READY
+    sim.applyEvent({ type: 'admit', pid: 1 });
+    sim.applyEvent({ type: 'admit', pid: 2 });
     expect(sim.ready_queue).toEqual([2, 1]);
 
-    // Update P1 priority to 1 (highest)
+    // Burst time cannot be altered after NEW
+    const burstInReady = sim.dispatch('apply', {
+      events: sim.applied_events,
+      event: { type: 'update_pcb', pid: 1, burst_time: 5 },
+    });
+    expect(burstInReady.applied).toBe(false);
+    expect(sim.pcbs[1]?.burst_time).toBe(8);
+
+    // Priority can still be adjusted dynamically in READY
     const res = sim.dispatch('apply', {
       events: sim.applied_events,
       event: { type: 'update_pcb', pid: 1, priority: 1 },
@@ -149,7 +185,7 @@ describe('ProcessLifecycleSimulation', () => {
     expect(sim.ready_queue).toEqual([1, 2]);
   });
 
-  it('successfully executes all demo scripts (FCFS, RR, PRIORITY)', () => {
+  it('successfully executes all demo scripts (FCFS, RR, SJF, PRIORITY)', () => {
     // Test FCFS
     const simFCFS = new ProcessLifecycleSimulation();
     const allEventsFCFS = SCRIPT_FCFS.flatMap((step) => step.events);
@@ -161,6 +197,12 @@ describe('ProcessLifecycleSimulation', () => {
     const allEventsRR = SCRIPT_RR.flatMap((step) => step.events);
     simRR.rebuild(allEventsRR);
     expect(simRR.terminated.length).toBe(2);
+
+    // Test SJF
+    const simSJF = new ProcessLifecycleSimulation();
+    const allEventsSJF = SCRIPT_SJF.flatMap((step) => step.events);
+    simSJF.rebuild(allEventsSJF);
+    expect(simSJF.terminated.length).toBe(3);
 
     // Test Priority
     const simPrio = new ProcessLifecycleSimulation();
