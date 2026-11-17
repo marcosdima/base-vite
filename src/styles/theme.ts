@@ -45,6 +45,7 @@ export interface ThemeTransitions {
 
 export interface ThemeFonts {
   body: string;
+  mono: string;
 }
 
 export interface Theme {
@@ -61,6 +62,7 @@ export const lightTheme: Theme = {
   name: 'light',
   fonts: {
     body: "'Space Grotesk', 'Segoe UI', sans-serif",
+    mono: "'Fira Code', 'JetBrains Mono', 'Consolas', 'Courier New', monospace",
   },
   colors: {
     text: '#1f2937',

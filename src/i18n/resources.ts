@@ -112,6 +112,7 @@ export const resources: Resources = {
           theme: 'Theme',
           poll: 'Poll',
           groupInput: 'Grouped input',
+          terminal: 'Interactive CLI terminal (Reusable UI component)',
         },
         pollExample: {
           question: 'Which feature should we build next?',
@@ -253,6 +254,7 @@ export const resources: Resources = {
           theme: 'Tema',
           poll: 'Encuesta',
           groupInput: 'Input agrupado',
+          terminal: 'Terminal CLI interactivo (Componente UI reutilizable)',
         },
         pollExample: {
           question: 'Qué feature deberíamos construir ahora?',

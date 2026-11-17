@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { GroupInputBoard } from './inputs/groups/GroupInputBoard';
 import { PollDemo } from './inputs/poll/PollDemo';
 import { ThemeChanger } from './switches/ThemeChanger';
+import { Terminal } from '../ui/Terminal';
 import {
   FeatureCard,
   FeatureLabel,
@@ -26,6 +27,16 @@ export function FeatureShowcase() {
         <FeatureCard>
           <FeatureLabel>{t('dashboard.showcase.poll')}</FeatureLabel>
           <PollDemo />
+        </FeatureCard>
+
+        <FeatureCard style={{ gridColumn: '1 / -1' }}>
+          <FeatureLabel>{t('dashboard.showcase.terminal')}</FeatureLabel>
+          <Terminal
+            title="Base-Vite Terminal v1.0"
+            welcomeMessage='Welcome to the template terminal component! Type "help" or run "echo Hello World".'
+            prompt="demo@vite:~$ "
+            height="240px"
+          />
         </FeatureCard>
 
         <FeatureCard style={{ gridColumn: '1 / -1' }}>

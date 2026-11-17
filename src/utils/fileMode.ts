@@ -58,10 +58,10 @@ export function formatModeSymbolic(mode: number): string {
     }
 
     if (specialChar === 't') {
-      return `${read}${write}${special & 0o1 ? 't' : 'T'}`;
+      return `${read}${write}${bits & 0o1 ? 't' : 'T'}`;
     }
 
-    return `${read}${write}${special & 0o1 ? specialChar : specialChar.toUpperCase()}`;
+    return `${read}${write}${bits & 0o1 ? specialChar : specialChar.toUpperCase()}`;
   };
 
   const owner = permissionTriplet((mode >> 6) & 0o7, mode & S_ISUID, 's');
