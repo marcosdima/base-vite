@@ -17,11 +17,16 @@ export interface ArrowSpec {
   to: readonly [string, EdgeSide];
   dist?: number;
   bow?: number;
+  labelOffset?: number;
   label: string;
 }
 
 export interface ArrowData {
+  from: string;
+  to: string;
   d: string;
+  headPath: string;
+  ctrl: readonly [Point2D, Point2D, Point2D, Point2D];
   label: string;
   labelPos: Point2D;
 }
@@ -82,8 +87,8 @@ export function getRectEdgeAnchor(
 }
 
 /**
- * Builds an SVG cubic Bezier path (`d`) and perpendicular midpoint label position
- * connecting two bounding boxes inside `containerRect`.
+ * Builds an SVG cubic Bezier path (`d`), a centered arrowhead triangle (`headPath`)
+ * that stops outside the destination box border, and the label coordinates.
  */
 export function computeBezierArrow(
   fromRect: RectLike,
@@ -115,21 +120,45 @@ export function computeBezierArrow(
     c2.y += py * spec.bow;
   }
 
-  const ctrl = [p1, c1, c2, p2];
-  const d = `M ${p1.x} ${p1.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y} ${p2.x} ${p2.y}`;
+  // Keep the arrowhead tip 2px outside the target node border so it never hides underneath
+  const tipGap = 2;
+  const arrowLen = 10;
+  const arrowHalfW = 4.8;
+  const tip = { x: p2.x + n2[0] * tipGap, y: p2.y + n2[1] * tipGap };
 
+  // Incoming unit vector from c2 into tip
+  const endDx = tip.x - c2.x;
+  const endDy = tip.y - c2.y;
+  const endLen = Math.hypot(endDx, endDy) || 1;
+  const ux = endDx / endLen;
+  const uy = endDy / endLen;
+
+  // Terminate the curve stroke at the flat base of the arrowhead so the line is dead-center
+  const base = { x: tip.x - ux * arrowLen, y: tip.y - uy * arrowLen };
+  const wing1 = { x: base.x - uy * arrowHalfW, y: base.y + ux * arrowHalfW };
+  const wing2 = { x: base.x + uy * arrowHalfW, y: base.y - ux * arrowHalfW };
+
+  const d = `M ${p1.x} ${p1.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y} ${base.x} ${base.y}`;
+  const headPath = `M ${tip.x} ${tip.y} L ${wing1.x} ${wing1.y} L ${wing2.x} ${wing2.y} Z`;
+
+  const ctrl = [p1, c1, c2, p2] as const;
   const mid = bezierPoint(ctrl, 0.5);
   const tan = bezierTangent(ctrl, 0.5);
   const len = Math.hypot(tan.x, tan.y) || 1;
   const nx = -tan.y / len;
   const ny = tan.x / len;
+  const effectiveOffset = spec.labelOffset ?? labelOffset;
 
   return {
+    from: spec.from[0],
+    to: spec.to[0],
     d,
+    headPath,
+    ctrl,
     label: spec.label,
     labelPos: {
-      x: mid.x + nx * labelOffset,
-      y: mid.y + ny * labelOffset,
+      x: mid.x + nx * effectiveOffset,
+      y: mid.y + ny * effectiveOffset,
     },
   };
 }
