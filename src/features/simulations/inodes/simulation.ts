@@ -1,4 +1,4 @@
-import { SeededRandom } from '../common/prng';
+import { SeededRandom } from '../../../utils/random';
 import type {
   AllocationExplanation,
   DirectPointer,

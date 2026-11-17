@@ -17,6 +17,12 @@ export type TerminalCommand =
   | { name: 'help' }
   | { name: 'unknown'; command: string };
 
+function toNumber(value: string | undefined, radix: number): number {
+  const parsed = Number.parseInt(value ?? '', radix);
+
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
 /** Convierte una línea escrita por la persona usuaria en un comando tipado.
  * `ln -s destino enlace` produce un enlace simbólico; `ln origen enlace` uno duro.
  */
@@ -65,15 +71,15 @@ export function parseCommand(input: string): TerminalCommand {
       return {
         name: 'chmod',
         path: args[0] ?? '',
-        permissions: parseInt(args[1] ?? '0', 8),
+        permissions: toNumber(args[1], 8),
       };
 
     case 'chown':
       return {
         name: 'chown',
         path: args[0] ?? '',
-        uid: parseInt(args[1] ?? '0', 10),
-        gid: parseInt(args[2] ?? '0', 10),
+        uid: toNumber(args[1], 10),
+        gid: toNumber(args[2], 10),
       };
 
     case 'df':

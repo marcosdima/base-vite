@@ -41,4 +41,23 @@ describe('TerminalPage', () => {
     expect(await screen.findByText(/PID/i)).toBeInTheDocument();
     expect(await screen.findByText(/Planificador: FCFS/i)).toBeInTheDocument();
   });
+
+  it('executes POSIX filesystem commands (pwd, ls, touch, df)', async () => {
+    render(<TerminalPage />);
+
+    const input = screen.getByLabelText('Terminal input');
+    const form = input.closest('form')!;
+
+    fireEvent.change(input, { target: { value: 'pwd' } });
+    fireEvent.submit(form);
+    expect(await screen.findByText('/home/dev')).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: 'touch demo.txt' } });
+    fireEvent.submit(form);
+    expect(await screen.findByText(/Archivo creado: \/home\/dev\/demo\.txt/i)).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: 'ls' } });
+    fireEvent.submit(form);
+    expect(await screen.findByText(/#16\s+-rw-r--r--.*demo\.txt/i)).toBeInTheDocument();
+  });
 });

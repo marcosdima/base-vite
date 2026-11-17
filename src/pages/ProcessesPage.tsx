@@ -39,14 +39,10 @@ import type {
   ProcessStateSnapshot,
   SchedulingAlgorithm,
 } from '../features/simulations/processes/types';
+import { usePlayback } from '../hooks/usePlayback';
+import { type ArrowData, type ArrowSpec, computeBezierArrow } from '../utils/bezier';
 
-interface ArrowData {
-  d: string;
-  label: string;
-  labelPos: { x: number; y: number };
-}
-
-const ARROW_SPECS = [
+const ARROW_SPECS: readonly ArrowSpec[] = [
   { from: ['NEW', 'bottom'], to: ['READY', 'left'], dist: 70, label: 'admitir' },
   { from: ['READY', 'right'], to: ['RUNNING', 'left'], dist: 60, bow: 26, label: 'despachar' },
   { from: ['RUNNING', 'top'], to: ['READY', 'top'], dist: 95, label: 'interrumpir' },
@@ -58,41 +54,11 @@ const ARROW_SPECS = [
     label: 'E/S o evento espera',
   },
   { from: ['WAITING', 'left'], to: ['READY', 'bottom'], dist: 60, label: 'E/S o evento fin' },
-] as const;
-
-const EDGE_NORMAL: Record<string, [number, number]> = {
-  top: [0, -1],
-  bottom: [0, 1],
-  left: [-1, 0],
-  right: [1, 0],
-};
-
-function bezierInfo(ctrl: { x: number; y: number }[], t: number) {
-  const n = ctrl.length - 1;
-  const pt = { x: 0, y: 0 };
-  for (let i = 0; i <= n; i++) {
-    let c = 1;
-    for (let j = 1; j <= i; j++) c = (c * (n - i + j)) / j;
-    const w = c * Math.pow(1 - t, n - i) * Math.pow(t, i);
-    pt.x += ctrl[i]!.x * w;
-    pt.y += ctrl[i]!.y * w;
-  }
-  return pt;
-}
-
-function bezierTangent(ctrl: { x: number; y: number }[], t: number) {
-  const e = 0.01;
-  const a = bezierInfo(ctrl, Math.max(0, t - e));
-  const b = bezierInfo(ctrl, Math.min(1, t + e));
-  return { x: b.x - a.x, y: b.y - a.y };
-}
+];
 
 export function ProcessesPage() {
   const [mode, setMode] = useState<'demo' | 'manual'>('demo');
   const [algorithm, setAlgorithm] = useState<SchedulingAlgorithm>('FCFS');
-  const [speed, setSpeed] = useState<number>(3000);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [demoStepIdx, setDemoStepIdx] = useState<number>(0);
   const [selectedPid, setSelectedPid] = useState<number | null>(null);
 
   // Theory modal & Alert dialog
@@ -128,6 +94,22 @@ export function ProcessesPage() {
     }
   }, [algorithm]);
 
+  const {
+    stepIndex: demoStepIdx,
+    isPlaying,
+    setIsPlaying,
+    speed,
+    setSpeed,
+    prev: handleDemoPrev,
+    next: handleDemoNext,
+    togglePlay: handleDemoPlayToggle,
+    reset: resetDemoPlayback,
+  } = usePlayback({
+    totalSteps: currentScript.length,
+    initialSpeed: 3000,
+    enabled: mode === 'demo',
+  });
+
   // Compute demo simulation up to demoStepIdx
   const demoSimulation = useMemo(() => {
     const sim = new ProcessLifecycleSimulation({ seed: 100 });
@@ -154,23 +136,6 @@ export function ProcessesPage() {
         }
       : manualNarration;
 
-  // Auto-play demo timer
-  useEffect(() => {
-    if (!isPlaying || mode !== 'demo') return;
-
-    const timer = setInterval(() => {
-      setDemoStepIdx((prev) => {
-        if (prev + 1 >= currentScript.length) {
-          setIsPlaying(false);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, speed);
-
-    return () => clearInterval(timer);
-  }, [isPlaying, mode, currentScript.length, speed]);
-
   // Draw arrows connecting diagram nodes
   const updateArrows = useCallback(() => {
     if (!svgRef.current) return;
@@ -186,63 +151,7 @@ export function ProcessesPage() {
 
       const r1 = fromNode.getBoundingClientRect();
       const r2 = toNode.getBoundingClientRect();
-
-      const getAnchor = (r: DOMRect, side: string) => {
-        const x = r.left - svgRect.left;
-        const y = r.top - svgRect.top;
-        switch (side) {
-          case 'top':
-            return { x: x + r.width / 2, y };
-          case 'bottom':
-            return { x: x + r.width / 2, y: y + r.height };
-          case 'left':
-            return { x, y: y + r.height / 2 };
-          case 'right':
-            return { x: x + r.width, y: y + r.height / 2 };
-          default:
-            return { x: x + r.width / 2, y: y + r.height / 2 };
-        }
-      };
-
-      const p1 = getAnchor(r1, spec.from[1]);
-      const p2 = getAnchor(r2, spec.to[1]);
-      const n1 = EDGE_NORMAL[spec.from[1]] || [0, 0];
-      const n2 = EDGE_NORMAL[spec.to[1]] || [0, 0];
-      const dist = spec.dist ?? 50;
-
-      const c1 = { x: p1.x + n1[0] * dist, y: p1.y + n1[1] * dist };
-      const c2 = { x: p2.x + n2[0] * dist, y: p2.y + n2[1] * dist };
-
-      if ('bow' in spec && typeof spec.bow === 'number') {
-        const dx = p2.x - p1.x;
-        const dy = p2.y - p1.y;
-        const len = Math.hypot(dx, dy) || 1;
-        const px = -dy / len;
-        const py = dx / len;
-        c1.x += px * spec.bow;
-        c1.y += py * spec.bow;
-        c2.x += px * spec.bow;
-        c2.y += py * spec.bow;
-      }
-
-      const ctrl = [p1, c1, c2, p2];
-      const d = `M ${p1.x} ${p1.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y} ${p2.x} ${p2.y}`;
-
-      const mid = bezierInfo(ctrl, 0.5);
-      const tan = bezierTangent(ctrl, 0.5);
-      const len = Math.hypot(tan.x, tan.y) || 1;
-      const nx = -tan.y / len;
-      const ny = tan.x / len;
-      const off = 16;
-
-      newArrows.push({
-        d,
-        label: spec.label,
-        labelPos: {
-          x: mid.x + nx * off,
-          y: mid.y + ny * off,
-        },
-      });
+      newArrows.push(computeBezierArrow(r1, r2, svgRect, spec));
     }
 
     setArrows(newArrows);
@@ -267,9 +176,8 @@ export function ProcessesPage() {
 
   // Handle Algorithm Change
   const handleAlgoChange = (newAlgo: SchedulingAlgorithm) => {
-    setIsPlaying(false);
+    resetDemoPlayback(0);
     setAlgorithm(newAlgo);
-    setDemoStepIdx(0);
     setSelectedPid(null);
     if (mode === 'manual') {
       const res = manualSim.applyEvent({
@@ -286,31 +194,8 @@ export function ProcessesPage() {
     }
   };
 
-  // Demo controls
-  const handleDemoPrev = () => {
-    setIsPlaying(false);
-    setDemoStepIdx((prev) => Math.max(0, prev - 1));
-  };
-
-  const handleDemoNext = () => {
-    setIsPlaying(false);
-    setDemoStepIdx((prev) => Math.min(currentScript.length - 1, prev + 1));
-  };
-
-  const handleDemoPlayToggle = () => {
-    if (isPlaying) {
-      setIsPlaying(false);
-    } else {
-      if (demoStepIdx >= currentScript.length - 1) {
-        setDemoStepIdx(0);
-      }
-      setIsPlaying(true);
-    }
-  };
-
   const handleDemoReset = () => {
-    setIsPlaying(false);
-    setDemoStepIdx(0);
+    resetDemoPlayback(0);
     setSelectedPid(null);
   };
 

@@ -26,11 +26,10 @@ import {
   MAX_DATA_BLOCKS,
   PTRS_PER_BLOCK,
   blocksForBytes,
-  fmt,
-  fmtHex,
-  formatBytes,
 } from '../features/simulations/inodes/blockMap';
 import { InodeSimulation } from '../features/simulations/inodes/simulation';
+import { fmt, fmtHex, formatBytes } from '../utils/format';
+import { logSliderToValue, valueToLogSlider } from '../utils/range';
 
 interface InodeMetaItem {
   id: string;
@@ -53,10 +52,8 @@ const UNITS = { KB: 1024, MB: 1024 ** 2, GB: 1024 ** 3, TB: 1024 ** 4 } as const
 type Unit = keyof typeof UNITS;
 
 const SLIDER_STEPS = 1000;
-const LOG_MAX = Math.log(MAX_DATA_BLOCKS + 1);
-const sliderToBlocks = (s: number) =>
-  s <= 0 ? 0 : Math.min(MAX_DATA_BLOCKS, Math.round(Math.exp((s / SLIDER_STEPS) * LOG_MAX) - 1));
-const blocksToSlider = (b: number) => Math.round((Math.log(b + 1) / LOG_MAX) * SLIDER_STEPS);
+const sliderToBlocks = (s: number) => logSliderToValue(s, MAX_DATA_BLOCKS, SLIDER_STEPS);
+const blocksToSlider = (b: number) => valueToLogSlider(b, MAX_DATA_BLOCKS, SLIDER_STEPS);
 
 const PRESETS: { label: string; hint: string; blocks: number }[] = [
   { label: '48 KB', hint: 'Llena los 12 directos', blocks: DIRECT_COUNT },

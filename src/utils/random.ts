@@ -1,6 +1,18 @@
 /**
+ * Deterministic 32-bit integer hash (Avalanche / Murmur-style).
+ * Useful for O(1) procedural generation and repeatable pseudo-random indexing.
+ */
+export function hash32(x: number, seed: number = 0): number {
+  let h = (x ^ seed) >>> 0;
+  h = Math.imul(h ^ (h >>> 16), 0x7feb352d);
+  h = Math.imul(h ^ (h >>> 15), 0x846ca68b);
+  h ^= h >>> 16;
+  return h >>> 0;
+}
+
+/**
  * Deterministic pseudo-random number generator (Mulberry32).
- * Guarantees that the same seed produces identical sequence of values across runs.
+ * Guarantees that the same seed produces an identical sequence of values across runs.
  */
 export class SeededRandom {
   private s: number;
@@ -26,7 +38,7 @@ export class SeededRandom {
   /**
    * Samples k distinct elements without replacement from a population array.
    */
-  sample<T>(population: T[], k: number): T[] {
+  sample<T>(population: readonly T[], k: number): T[] {
     const pool = [...population];
     const n = pool.length;
     if (k > n) {

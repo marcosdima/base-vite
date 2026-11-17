@@ -14,10 +14,9 @@ import {
   type BlockMap,
   DIRECT_COUNT,
   PTRS_PER_BLOCK,
-  fmt,
-  fmtHex,
-  formatBytes,
 } from '../../../../features/simulations/inodes/blockMap';
+import { fmt, fmtHex, formatBytes } from '../../../../utils/format';
+import { getRepresentativeEntries } from '../../../../utils/range';
 
 export type DiagramTab = 'all' | 'direct' | 'simple' | 'double' | 'triple' | 'path';
 
@@ -26,59 +25,6 @@ interface BlockDiagramProps {
   dataBlocks: number;
   selectedLogical: number | null;
   onSelectLogical: (logical: number) => void;
-}
-
-interface RepresentativeEntry {
-  entryIdx: number;
-  logical: number;
-  physical: number;
-  isActive: boolean;
-}
-
-/**
- * Returns representative entries to display in an index block:
- * first 2, the active path entry (if present), and the last entry.
- */
-function getRepresentativeEntries(
-  count: number,
-  firstLogical: number,
-  activeEntry: number | null,
-  getPhysical: (entry: number) => number,
-): (RepresentativeEntry | { isGap: true; count: number; from: number; to: number })[] {
-  if (count <= 0) return [];
-
-  const indices = new Set<number>();
-  indices.add(0);
-  if (count > 1) indices.add(1);
-  if (activeEntry !== null && activeEntry >= 0 && activeEntry < count) {
-    indices.add(activeEntry);
-  }
-  if (count > 2) indices.add(count - 1);
-
-  const sorted = [...indices].sort((a, b) => a - b);
-  const result: (RepresentativeEntry | { isGap: true; count: number; from: number; to: number })[] =
-    [];
-
-  let prev = -1;
-  for (const idx of sorted) {
-    if (idx - prev > 1) {
-      result.push({
-        isGap: true,
-        count: idx - prev - 1,
-        from: prev + 1,
-        to: idx - 1,
-      });
-    }
-    result.push({
-      entryIdx: idx,
-      logical: firstLogical + idx,
-      physical: getPhysical(idx),
-      isActive: activeEntry === idx,
-    });
-    prev = idx;
-  }
-
-  return result;
 }
 
 export function BlockDiagram({

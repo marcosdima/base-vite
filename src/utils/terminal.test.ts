@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { parseCommand } from './terminal';
 
 describe('parseCommand', () => {
@@ -36,20 +36,31 @@ describe('parseCommand', () => {
     });
   });
 
-  it('should parse chmod with an octal mode', () => {
+  it('should parse chmod with an octal mode and fallback to 0 on invalid input', () => {
     expect(parseCommand('chmod notes.md 600')).toEqual({
       name: 'chmod',
       path: 'notes.md',
       permissions: 0o600,
     });
+    expect(parseCommand('chmod notes.md invalid')).toEqual({
+      name: 'chmod',
+      path: 'notes.md',
+      permissions: 0,
+    });
   });
 
-  it('should parse chown with uid and gid', () => {
+  it('should parse chown with uid and gid and fallback to 0 on invalid input', () => {
     expect(parseCommand('chown notes.md 1000 1000')).toEqual({
       name: 'chown',
       path: 'notes.md',
       uid: 1000,
       gid: 1000,
+    });
+    expect(parseCommand('chown notes.md root wheel')).toEqual({
+      name: 'chown',
+      path: 'notes.md',
+      uid: 0,
+      gid: 0,
     });
   });
 

@@ -1,18 +1,7 @@
-import { useState } from 'react';
-import { LuArrowRight, LuCpu, LuLayers, LuTerminal } from 'react-icons/lu';
-import { Link } from 'react-router-dom';
+import { LuCpu, LuLayers, LuTerminal } from 'react-icons/lu';
+import { SpotlightCardGrid, type SpotlightCardItem } from '../components/ui/SpotlightCardGrid';
 
-interface SimPadItem {
-  id: string;
-  title: string;
-  path: string;
-  icon: React.ReactNode;
-  tag: string;
-  description: string;
-  accentClass: string;
-}
-
-const PADS: SimPadItem[] = [
+const PADS: SpotlightCardItem[] = [
   {
     id: 'inodes',
     title: 'Inodes',
@@ -46,56 +35,5 @@ const PADS: SimPadItem[] = [
 ];
 
 export function HomePage() {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
-  const [lastIndex, setLastIndex] = useState<number>(0);
-
-  const activeIndex = hoveredIndex !== null ? hoveredIndex : lastIndex;
-  const isVisible = hoveredIndex !== null;
-
-  return (
-    <div className="home-pads-container">
-      <div className="home-pads-grid" onMouseLeave={() => setHoveredIndex(null)}>
-        {/* Dynamic sliding shadow with spring bounce */}
-        <div
-          className={`pads-sliding-shadow pos-${activeIndex} ${
-            isVisible ? 'is-visible' : 'is-hidden'
-          }`}
-          aria-hidden="true"
-        />
-
-        {PADS.map((pad, idx) => (
-          <Link
-            key={pad.id}
-            to={pad.path}
-            className={`huge-sim-pad ${pad.accentClass} ${
-              hoveredIndex === idx ? 'is-hovered' : ''
-            }`}
-            id={`pad-${pad.id}`}
-            onMouseEnter={() => {
-              setHoveredIndex(idx);
-              setLastIndex(idx);
-            }}
-            onFocus={() => {
-              setHoveredIndex(idx);
-              setLastIndex(idx);
-            }}
-            onBlur={() => setHoveredIndex(null)}
-          >
-            <div className="pad-top-tag">{pad.tag}</div>
-
-            <div className="pad-icon-wrapper">{pad.icon}</div>
-
-            <h2 className="pad-title">{pad.title}</h2>
-
-            <p className="pad-desc">{pad.description}</p>
-
-            <div className="pad-action">
-              <span>Ingresar a la simulación</span>
-              <LuArrowRight className="pad-arrow" />
-            </div>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
+  return <SpotlightCardGrid items={PADS} />;
 }

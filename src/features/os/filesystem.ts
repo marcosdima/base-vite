@@ -1,4 +1,4 @@
-import { S_IFDIR, S_IFLNK, S_IFREG, getFileType } from './fileMode';
+import { S_IFDIR, S_IFLNK, S_IFREG, getFileType } from '../../utils/fileMode';
 import {
   allocateInode,
   chmodInode,

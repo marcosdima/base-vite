@@ -1,4 +1,9 @@
-import { formatModeOctal, formatModeSymbolic, getFileType, type FileType } from './fileMode';
+import {
+  formatModeOctal,
+  formatModeSymbolic,
+  getFileType,
+  type FileType,
+} from '../../utils/fileMode';
 
 /**
  * Metadatos de un inodo. NO contiene el contenido del archivo ni la tabla

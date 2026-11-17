@@ -16,6 +16,10 @@
  * (the "allocation ordinal") is then mapped onto a fragmented free-space layout.
  */
 
+import { fmt, fmtHex, formatBytes } from '../../../utils/format';
+import { hash32 } from '../../../utils/random';
+
+export { fmt, fmtHex, formatBytes };
 export const BLOCK_SIZE = 4096;
 export const POINTER_SIZE = 4;
 export const PTRS_PER_BLOCK = BLOCK_SIZE / POINTER_SIZE; // 1024
@@ -102,15 +106,6 @@ export interface BlockResolution {
 
 export function nodeId(ref: NodeRef): string {
   return ref.path.length ? `${ref.branch}:${ref.path.join('.')}` : ref.branch;
-}
-
-/** Deterministic 32-bit integer hash. */
-function hash32(x: number, seed: number): number {
-  let h = (x ^ seed) >>> 0;
-  h = Math.imul(h ^ (h >>> 16), 0x7feb352d);
-  h = Math.imul(h ^ (h >>> 15), 0x846ca68b);
-  h ^= h >>> 16;
-  return h >>> 0;
 }
 
 const CHUNK = 2048; // allocation ordinals per chunk
@@ -270,20 +265,3 @@ export class BlockMap {
 export function blocksForBytes(bytes: number): number {
   return Math.min(MAX_DATA_BLOCKS, Math.max(0, Math.ceil(bytes / BLOCK_SIZE)));
 }
-
-export function formatBytes(bytes: number): string {
-  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  let value = bytes;
-  let unit = 0;
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024;
-    unit++;
-  }
-  const digits = unit === 0 || Number.isInteger(value) ? 0 : value < 10 ? 2 : 1;
-  return `${value.toLocaleString('es-AR', { maximumFractionDigits: digits })} ${units[unit]}`;
-}
-
-export const fmt = (n: number): string => n.toLocaleString('es-AR');
-
-/** Formats a 32-bit physical block address into standard 8-digit hexadecimal: e.g. 0x00108000 */
-export const fmtHex = (n: number): string => '0x' + (n >>> 0).toString(16).padStart(8, '0');

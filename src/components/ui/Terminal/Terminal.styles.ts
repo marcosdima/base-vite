@@ -11,7 +11,7 @@ export const TerminalContainer = styled.div`
     0 20px 35px -5px rgba(0, 0, 0, 0.4),
     0 10px 15px -5px rgba(0, 0, 0, 0.2);
   overflow: hidden;
-  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+  font-family: ${({ theme }: { theme: DefaultTheme }) => theme.fonts.mono};
   font-size: 0.875rem;
   line-height: 1.5;
   width: 100%;
