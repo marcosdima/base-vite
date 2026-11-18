@@ -6,31 +6,36 @@ import { NotFoundPage } from '../pages/NotFoundPage';
 import { ProcessesPage } from '../pages/ProcessesPage';
 import { TerminalPage } from '../pages/TerminalPage';
 
-export const router = createBrowserRouter([
+export const router = createBrowserRouter(
+  [
+    {
+      path: '/',
+      element: <AppShell />,
+      children: [
+        {
+          index: true,
+          element: <HomePage />,
+        },
+        {
+          path: 'inodes',
+          element: <InodesPage />,
+        },
+        {
+          path: 'processes',
+          element: <ProcessesPage />,
+        },
+        {
+          path: 'terminal',
+          element: <TerminalPage />,
+        },
+        {
+          path: '*',
+          element: <NotFoundPage />,
+        },
+      ],
+    },
+  ],
   {
-    path: '/',
-    element: <AppShell />,
-    children: [
-      {
-        index: true,
-        element: <HomePage />,
-      },
-      {
-        path: 'inodes',
-        element: <InodesPage />,
-      },
-      {
-        path: 'processes',
-        element: <ProcessesPage />,
-      },
-      {
-        path: 'terminal',
-        element: <TerminalPage />,
-      },
-      {
-        path: '*',
-        element: <NotFoundPage />,
-      },
-    ],
+    basename: import.meta.env.BASE_URL,
   },
-]);
+);
