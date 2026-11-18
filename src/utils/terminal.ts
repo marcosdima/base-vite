@@ -70,16 +70,16 @@ export function parseCommand(input: string): TerminalCommand {
     case 'chmod':
       return {
         name: 'chmod',
-        path: args[0] ?? '',
-        permissions: toNumber(args[1], 8),
+        permissions: toNumber(args[0], 8),
+        path: args[1] ?? '',
       };
 
     case 'chown':
       return {
         name: 'chown',
-        path: args[0] ?? '',
-        uid: toNumber(args[1], 10),
-        gid: toNumber(args[2], 10),
+        uid: toNumber(args[0], 10),
+        gid: toNumber(args[1], 10),
+        path: args[2] ?? '',
       };
 
     case 'df':

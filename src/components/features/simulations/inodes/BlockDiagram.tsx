@@ -47,6 +47,15 @@ export function BlockDiagram({
   const hasDouble = dataBlocks > BRANCH_FIRST_LOGICAL.double;
   const hasTriple = dataBlocks > BRANCH_FIRST_LOGICAL.triple;
 
+  const activeTab: DiagramTab =
+    (tab === 'direct' && !hasDirect) ||
+    (tab === 'simple' && !hasSimple) ||
+    (tab === 'double' && !hasDouble) ||
+    (tab === 'triple' && !hasTriple) ||
+    (tab === 'path' && resolution === null)
+      ? 'all'
+      : tab;
+
   // Direct pointers representative items
   const directEntries = useMemo(() => {
     const count = Math.min(DIRECT_COUNT, dataBlocks);
@@ -124,8 +133,8 @@ export function BlockDiagram({
           <button
             type="button"
             role="tab"
-            aria-selected={tab === 'all'}
-            className={`diagram-tab-btn ${tab === 'all' ? 'active' : ''}`}
+            aria-selected={activeTab === 'all'}
+            className={`diagram-tab-btn ${activeTab === 'all' ? 'active' : ''}`}
             onClick={() => setTab('all')}
           >
             Todas las ramas
@@ -133,8 +142,8 @@ export function BlockDiagram({
           <button
             type="button"
             role="tab"
-            aria-selected={tab === 'direct'}
-            className={`diagram-tab-btn ${tab === 'direct' ? 'active' : ''} ${
+            aria-selected={activeTab === 'direct'}
+            className={`diagram-tab-btn ${activeTab === 'direct' ? 'active' : ''} ${
               !hasDirect ? 'disabled' : ''
             }`}
             onClick={() => setTab('direct')}
@@ -145,8 +154,8 @@ export function BlockDiagram({
           <button
             type="button"
             role="tab"
-            aria-selected={tab === 'simple'}
-            className={`diagram-tab-btn ${tab === 'simple' ? 'active' : ''} ${
+            aria-selected={activeTab === 'simple'}
+            className={`diagram-tab-btn ${activeTab === 'simple' ? 'active' : ''} ${
               !hasSimple ? 'disabled' : ''
             }`}
             onClick={() => setTab('simple')}
@@ -157,8 +166,8 @@ export function BlockDiagram({
           <button
             type="button"
             role="tab"
-            aria-selected={tab === 'double'}
-            className={`diagram-tab-btn ${tab === 'double' ? 'active' : ''} ${
+            aria-selected={activeTab === 'double'}
+            className={`diagram-tab-btn ${activeTab === 'double' ? 'active' : ''} ${
               !hasDouble ? 'disabled' : ''
             }`}
             onClick={() => setTab('double')}
@@ -169,8 +178,8 @@ export function BlockDiagram({
           <button
             type="button"
             role="tab"
-            aria-selected={tab === 'triple'}
-            className={`diagram-tab-btn ${tab === 'triple' ? 'active' : ''} ${
+            aria-selected={activeTab === 'triple'}
+            className={`diagram-tab-btn ${activeTab === 'triple' ? 'active' : ''} ${
               !hasTriple ? 'disabled' : ''
             }`}
             onClick={() => setTab('triple')}
@@ -181,8 +190,8 @@ export function BlockDiagram({
           <button
             type="button"
             role="tab"
-            aria-selected={tab === 'path'}
-            className={`diagram-tab-btn diagram-tab-focus ${tab === 'path' ? 'active' : ''} ${
+            aria-selected={activeTab === 'path'}
+            className={`diagram-tab-btn diagram-tab-focus ${activeTab === 'path' ? 'active' : ''} ${
               resolution === null ? 'disabled' : ''
             }`}
             onClick={() => setTab('path')}
@@ -216,7 +225,7 @@ export function BlockDiagram({
         ) : (
           <div className="diagram-branches-flow">
             {/* VISTA 1: RUTA FOCALIZADA DEL BLOQUE LÓGICO SELECCIONADO */}
-            {tab === 'path' && resolution && (
+            {activeTab === 'path' && resolution && (
               <section className="diagram-branch-section branch-highlighted">
                 <div className="branch-section-header">
                   <div className="section-title-wrap">
@@ -307,7 +316,7 @@ export function BlockDiagram({
             )}
 
             {/* RAMA 1: PUNTEROS DIRECTOS (i_block[0..11]) */}
-            {(tab === 'all' || tab === 'direct') && hasDirect && (
+            {(activeTab === 'all' || activeTab === 'direct') && hasDirect && (
               <section className="diagram-branch-section">
                 <div className="branch-section-header">
                   <div className="section-title-wrap">
@@ -403,7 +412,7 @@ export function BlockDiagram({
                             </span>
                           </div>
                           <div className="card-phys-address font-mono">{fmtHex(item.physical)}</div>
-                          <div className="card-data-info">1 lectura a disco · 4 KiB asignados</div>
+                          <div className="card-data-info">1 lectura a disco · 4 KB asignados</div>
                         </div>
                       );
                     })}
@@ -413,13 +422,13 @@ export function BlockDiagram({
             )}
 
             {/* RAMA 2: INDIRECTO SIMPLE (i_block[12]) */}
-            {(tab === 'all' || tab === 'simple') && hasSimple && (
+            {(activeTab === 'all' || activeTab === 'simple') && hasSimple && (
               <section className="diagram-branch-section">
                 <div className="branch-section-header">
                   <div className="section-title-wrap">
                     <LuLayers className="branch-icon icon-simple" />
                     <h4>
-                      Indirecto Simple: <code>i_block[12]</code> (1.024 punteros · 4 MiB)
+                      Indirecto Simple: <code>i_block[12]</code> (1.024 punteros · 4 MB)
                     </h4>
                   </div>
                   <span className="branch-stats-tag">
@@ -451,7 +460,7 @@ export function BlockDiagram({
                   {/* Bloque de Índices Simple */}
                   <div className="diagram-index-block-card">
                     <div className="index-card-header badge-simple">
-                      <div className="index-type-tag">BLOQUE DE ÍNDICES (4 KiB)</div>
+                      <div className="index-type-tag">BLOQUE DE ÍNDICES (4 KB)</div>
                       <div className="index-phys font-mono">
                         {fmtHex(map.node({ branch: 'simple', path: [] }).physical)}
                       </div>
@@ -537,13 +546,13 @@ export function BlockDiagram({
             )}
 
             {/* RAMA 3: INDIRECTO DOBLE (i_block[13]) */}
-            {(tab === 'all' || tab === 'double') && hasDouble && doubleInfo && (
+            {(activeTab === 'all' || activeTab === 'double') && hasDouble && doubleInfo && (
               <section className="diagram-branch-section">
                 <div className="branch-section-header">
                   <div className="section-title-wrap">
                     <LuLayers className="branch-icon icon-double" />
                     <h4>
-                      Indirecto Doble: <code>i_block[13]</code> (1.048.576 punteros · 4 GiB)
+                      Indirecto Doble: <code>i_block[13]</code> (1.048.576 punteros · 4 GB)
                     </h4>
                   </div>
                   <span className="branch-stats-tag">
@@ -690,14 +699,14 @@ export function BlockDiagram({
             )}
 
             {/* RAMA 4: INDIRECTO TRIPLE (i_block[14]) */}
-            {(tab === 'all' || tab === 'triple') && hasTriple && tripleInfo && (
+            {(activeTab === 'all' || activeTab === 'triple') && hasTriple && tripleInfo && (
               <section className="diagram-branch-section">
                 <div className="branch-section-header">
                   <div className="section-title-wrap">
                     <LuLayers className="branch-icon icon-triple" />
                     <h4>
-                      Indirecto Triple: <code>i_block[14]</code> (~1.073 Millones de Bloques · 4
-                      TiB)
+                      Indirecto Triple: <code>i_block[14]</code> (~1.074 mil millones de bloques · 4
+                      TB)
                     </h4>
                   </div>
                   <span className="branch-stats-tag">

@@ -32,9 +32,15 @@ describe('ProcessesPage', () => {
     // Step forward: P1 dispatched to RUNNING
     if (stepBtn) fireEvent.click(stepBtn);
     expect(screen.getByText(/FCFS · Despachar P1/i)).toBeInTheDocument();
+
+    // Keyboard navigation: ArrowLeft steps back, ArrowRight steps forward
+    fireEvent.keyDown(window, { key: 'ArrowLeft' });
+    expect(screen.getByText(/FCFS · Admisión/i)).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: 'ArrowRight' });
+    expect(screen.getByText(/FCFS · Despachar P1/i)).toBeInTheDocument();
   });
 
-  it('opens and closes the Theory modal', () => {
+  it('opens and closes the Theory modal via button and Escape key', () => {
     render(<ProcessesPage />);
 
     const openTheoryBtn = screen.getByText(/Guía del Planificador/i);
@@ -51,9 +57,8 @@ describe('ProcessesPage', () => {
     fireEvent.click(rrTab);
     expect(within(dialog).getByText('Round Robin (Turno Rotatorio)')).toBeInTheDocument();
 
-    // Close modal
-    const closeBtn = document.getElementById('btn-close-modal');
-    if (closeBtn) fireEvent.click(closeBtn);
+    // Close modal via Escape key
+    fireEvent.keyDown(window, { key: 'Escape' });
     expect(screen.queryByText('Políticas del Planificador de Corto Plazo')).not.toBeInTheDocument();
   });
 

@@ -21,24 +21,41 @@ describe('TerminalPage', () => {
     expect(await screen.findByText(/Linux so-simulator 6.8.0-generic/i)).toBeInTheDocument();
   });
 
-  it('executes the inodes command and displays structure summary', async () => {
+  it('executes the inodes and stat commands using VFS and real-scale BlockMap', async () => {
     render(<TerminalPage />);
 
     const input = screen.getByLabelText('Terminal input');
-    fireEvent.change(input, { target: { value: 'inodes' } });
-    fireEvent.submit(input.closest('form')!);
+    const form = input.closest('form')!;
 
-    expect(await screen.findByText(/Inodo ID: #42/i)).toBeInTheDocument();
+    fireEvent.change(input, { target: { value: 'inodes' } });
+    fireEvent.submit(form);
+    expect(await screen.findByText(/i_block\[0\.\.11\] Directos/i)).toBeInTheDocument();
+
+    // Stat on a real VFS file
+    fireEvent.change(input, { target: { value: 'stat notes.md' } });
+    fireEvent.submit(form);
+    expect(await screen.findByText(/Archivo: \/home\/dev\/notes\.md/i)).toBeInTheDocument();
+
+    // Stat on a logical block index
+    fireEvent.change(input, { target: { value: 'stat 12' } });
+    fireEvent.submit(form);
+    expect(await screen.findByText(/Bloque Lógico L = 12/i)).toBeInTheDocument();
   });
 
-  it('executes the ps command and displays processes table', async () => {
+  it('executes ps and kill commands, terminating READY and RUNNING processes properly', async () => {
     render(<TerminalPage />);
 
     const input = screen.getByLabelText('Terminal input');
-    fireEvent.change(input, { target: { value: 'ps' } });
-    fireEvent.submit(input.closest('form')!);
+    const form = input.closest('form')!;
 
-    expect(await screen.findByText(/PID/i)).toBeInTheDocument();
+    // Kill P1 (which is in READY)
+    fireEvent.change(input, { target: { value: 'kill 1' } });
+    fireEvent.submit(form);
+    expect(await screen.findByText(/Proceso P1 finalizado \(TERMINATED\)/i)).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: 'ps' } });
+    fireEvent.submit(form);
+    expect(await screen.findByText(/1\s+TERMINATED/i)).toBeInTheDocument();
     expect(await screen.findByText(/Planificador: FCFS/i)).toBeInTheDocument();
   });
 

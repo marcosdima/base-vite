@@ -151,15 +151,6 @@
   animation: viewFadeIn 0.4s 0.12s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
-.process-sim > .proc-dashboard-grid,
-.process-sim > .proc-manual-bar {
-  animation: viewFadeIn 0.4s 0.2s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-}
-
-.process-sim > .proc-pcb-table-wrap {
-  animation: viewFadeIn 0.4s 0.26s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-}
-
 /* Propagate / Cascada con delay para la vista de Terminal */
 .terminal-page-fullscreen > .terminal-page-banner {
   animation: viewFadeIn 0.35s 0.06s cubic-bezier(0.16, 1, 0.3, 1) backwards;

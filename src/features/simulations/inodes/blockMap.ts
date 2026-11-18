@@ -2,14 +2,14 @@
  * Real-scale block map for an inode using classic indirect addressing
  * (ext2/ext3, or ext4 without the `extents` feature).
  *
- * - Block size: 4 KiB. Block pointers: 32-bit (4 B) -> 1,024 pointers per index block.
+ * - Block size: 4 KB. Block pointers: 32-bit (4 B) -> 1,024 pointers per index block.
  * - i_block[0..11]: direct pointers.
  * - i_block[12]: single indirect (1,024 data blocks).
  * - i_block[13]: double indirect (1,024^2 data blocks).
  * - i_block[14]: triple indirect (1,024^3 data blocks).
  *
  * Nothing is enumerated: every physical block number is computed on demand, so a
- * multi-terabyte file costs the same as a 4 KiB one.
+ * multi-terabyte file costs the same as a 4 KB one.
  *
  * Allocation order mimics ext2/ext3: blocks are allocated in file order and every
  * index block is allocated right before the first data block it maps. That order
@@ -24,7 +24,7 @@ export const BLOCK_SIZE = 4096;
 export const POINTER_SIZE = 4;
 export const PTRS_PER_BLOCK = BLOCK_SIZE / POINTER_SIZE; // 1024
 export const DIRECT_COUNT = 12;
-/** 32-bit block numbers with 4 KiB blocks -> 16 TiB partition. */
+/** 32-bit block numbers with 4 KB blocks -> 16 TB partition. */
 export const FS_TOTAL_BLOCKS = 2 ** 32;
 
 export type Branch = 'simple' | 'double' | 'triple';

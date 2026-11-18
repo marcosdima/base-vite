@@ -36,27 +36,27 @@ describe('parseCommand', () => {
     });
   });
 
-  it('should parse chmod with an octal mode and fallback to 0 on invalid input', () => {
-    expect(parseCommand('chmod notes.md 600')).toEqual({
+  it('should parse chmod with an octal mode first (POSIX order) and fallback to 0 on invalid input', () => {
+    expect(parseCommand('chmod 600 notes.md')).toEqual({
       name: 'chmod',
       path: 'notes.md',
       permissions: 0o600,
     });
-    expect(parseCommand('chmod notes.md invalid')).toEqual({
+    expect(parseCommand('chmod invalid notes.md')).toEqual({
       name: 'chmod',
       path: 'notes.md',
       permissions: 0,
     });
   });
 
-  it('should parse chown with uid and gid and fallback to 0 on invalid input', () => {
-    expect(parseCommand('chown notes.md 1000 1000')).toEqual({
+  it('should parse chown with uid and gid first (POSIX order) and fallback to 0 on invalid input', () => {
+    expect(parseCommand('chown 1000 1000 notes.md')).toEqual({
       name: 'chown',
       path: 'notes.md',
       uid: 1000,
       gid: 1000,
     });
-    expect(parseCommand('chown notes.md root wheel')).toEqual({
+    expect(parseCommand('chown root wheel notes.md')).toEqual({
       name: 'chown',
       path: 'notes.md',
       uid: 0,

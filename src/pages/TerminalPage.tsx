@@ -10,17 +10,28 @@ import {
   filesystemStats,
   joinPath,
   link,
+  listDirectory,
   listWithStats,
   mkdir,
   normalizePath,
   readFile,
   readlink,
   resolveDirectory,
+  stat as statPath,
   symlink,
   unlink,
 } from '../features/os/filesystem';
 import { createSeedFilesystem } from '../features/os/seed';
-import { InodeSimulation } from '../features/simulations/inodes/simulation';
+import {
+  BLOCK_SIZE,
+  BRANCH_FIRST_LOGICAL,
+  BlockMap,
+  DIRECT_COUNT,
+  MAX_DATA_BLOCKS,
+  fmt,
+  fmtHex,
+  formatBytes,
+} from '../features/simulations/inodes/blockMap';
 import { ProcessLifecycleSimulation } from '../features/simulations/processes/simulation';
 import {
   formatModeOctal,
@@ -32,7 +43,7 @@ import {
 export function TerminalPage() {
   const [cwd, setCwd] = useState('/home/dev');
   const fsRef = useRef(createSeedFilesystem());
-  const inodeSim = useMemo(() => new InodeSimulation({ seed: 1234 }), []);
+  const blockMap = useMemo(() => new BlockMap(1234), []);
   const procSim = useMemo(() => {
     const sim = new ProcessLifecycleSimulation({ seed: 42 });
     sim.applyEvent({ type: 'create', pid: 1, priority: 3, burst_time: 4 });
@@ -185,7 +196,7 @@ export function TerminalPage() {
         },
       },
       rm: {
-        description: 'Elimina una entrada de directorio (unlink)',
+        description: 'Elimina un archivo, enlace o directorio vacío (unlink)',
         usage: 'rm <ruta>',
         handler: (args, { print }) => {
           if (!args[0]) {
@@ -193,6 +204,22 @@ export function TerminalPage() {
             return;
           }
           const target = resolveTarget(cwd, args[0]);
+          if (target === cwd || cwd.startsWith(`${target}/`)) {
+            print(
+              `rm: no se puede eliminar '${args[0]}': Es el directorio de trabajo actual`,
+              'error',
+            );
+            return;
+          }
+          const inode = statPath(fsRef.current, target);
+          if (
+            inode &&
+            getFileType(inode.mode) === 'directory' &&
+            listDirectory(fsRef.current, target).length > 0
+          ) {
+            print(`rm: no se puede eliminar '${args[0]}': El directorio no está vacío`, 'error');
+            return;
+          }
           if (!unlink(fsRef.current, target)) {
             print(`rm: no se pudo eliminar '${args[0]}'`, 'error');
             return;
@@ -261,38 +288,97 @@ export function TerminalPage() {
         },
       },
       stat: {
-        description: 'Muestra la resolución de bloque físico de una posición lógica (1-28)',
-        usage: 'stat <posicion_logica (1-28)>',
+        description:
+          'Inspecciona el inodo de una ruta o traduce un bloque lógico L a dirección física',
+        usage: 'stat <ruta | bloque_logico>',
         handler: (args, { print }) => {
-          const pos = parseInt(args[0] ?? '1', 10);
-          if (isNaN(pos) || pos < 1 || pos > 28) {
-            print('Uso: stat <posicion_logica entre 1 y 28>', 'error');
+          const arg = args[0];
+          if (!arg) {
+            print('Uso: stat <ruta | bloque_logico>', 'error');
             return;
           }
-          const res = inodeSim.resolvePosition(pos);
-          print(
-            `Inodo #12 | Posición Lógica: ${pos} ➜ Bloque Físico #${String(res.physical_block).padStart(2, '0')}`,
-            'success',
-          );
-          print(`Ruta: ${res.route_type} [${res.pointer_label}]`, 'info');
-          print(`Cálculo: ${res.formal_calc}`, 'muted');
+
+          const targetPath = resolveTarget(cwd, arg);
+          const vfsInode = statPath(fsRef.current, targetPath);
+
+          if (vfsInode) {
+            const fType = getFileType(vfsInode.mode);
+            print(`  Archivo: ${targetPath}`, 'success');
+            print(
+              `  Inodo: #${vfsInode.number} | Tipo: ${fType} | Enlaces: ${vfsInode.nlink}`,
+              'info',
+            );
+            print(
+              `  Modo: ${formatModeSymbolic(vfsInode.mode)} (${formatModeOctal(vfsInode.mode)}) | UID:GID: ${vfsInode.uid}:${vfsInode.gid}`,
+              'info',
+            );
+            print(
+              `  Tamaño: ${vfsInode.size} B | Sectores (512B): ${vfsInode.blocks} | Bloque Físico [0]: ${fmtHex(blockMap.directPhysical(0))}`,
+              'muted',
+            );
+            return;
+          }
+
+          if (/^\d+$/.test(arg)) {
+            const logical = Number.parseInt(arg, 10);
+            if (logical < 0 || logical >= MAX_DATA_BLOCKS) {
+              print(`stat: bloque lógico fuera de rango (0..${fmt(MAX_DATA_BLOCKS - 1)})`, 'error');
+              return;
+            }
+            const res = blockMap.resolve(logical);
+            const hopsStr =
+              res.hops.length > 0
+                ? res.hops
+                    .map((h) => `${h.level}(${fmtHex(h.physical)})[${fmt(h.entry)}]`)
+                    .join(' ➜ ') + ' ➜ '
+                : '';
+            print(
+              `Bloque Lógico L = ${fmt(res.logical)} (${formatBytes(res.logical * BLOCK_SIZE)}) ➜ Físico ${fmtHex(res.dataPhysical)}`,
+              'success',
+            );
+            print(
+              `Ruta: i_block[${res.slot}] (${res.route}) ➜ ${hopsStr}Datos ${fmtHex(res.dataPhysical)} (${res.diskReads} lectura${res.diskReads === 1 ? '' : 's'})`,
+              'info',
+            );
+            print(`Fórmula: ${res.formula}`, 'muted');
+            return;
+          }
+
+          print(`stat: no se puede efectuar stat sobre '${arg}': No existe el archivo`, 'error');
         },
       },
       inodes: {
-        description: 'Resumen de inodos y distribución del disco de 100 bloques',
+        description: 'Resumen de la tabla de inodos y arquitectura de punteros Ext4 (BlockMap)',
         usage: 'inodes',
         handler: (_args, { print }) => {
-          const struct = inodeSim.getStructure();
-          print(`Inodo ID: #${struct.inode_id}`, 'info');
-          print(`Modo: ${struct.mode} | UID: ${struct.uid} | GID: ${struct.gid}`, 'muted');
-          print(`Total Posiciones Lógicas: ${struct.total_logical_positions}`, 'muted');
+          const stats = filesystemStats(fsRef.current);
+          const directSample = Array.from({ length: 4 }, (_, i) =>
+            fmtHex(blockMap.directPhysical(i)),
+          ).join(', ');
+          const simpleRoot = fmtHex(blockMap.node({ branch: 'simple', path: [] }).physical);
+          const doubleRoot = fmtHex(blockMap.node({ branch: 'double', path: [] }).physical);
+          const tripleRoot = fmtHex(blockMap.node({ branch: 'triple', path: [] }).physical);
+
           print(
-            `Punteros Directos: 12 (Bloques: ${struct.direct_pointers.map((d) => `#${d.block}`).join(', ')})`,
+            `Tabla VFS: ${stats.usedInodes}/${stats.inodes} inodos activos | Bloques de 4 KB (${formatBytes(BLOCK_SIZE)})`,
             'info',
           );
-          print(`Índice Simple: Bloque #${struct.indirect_simple.block_id}`, 'info');
-          print(`Índice Doble: Bloque N1 #${struct.indirect_double.block_id}`, 'info');
-          print(`Índice Triple: Bloque N1 #${struct.indirect_triple.block_id}`, 'info');
+          print(
+            `i_block[0..${DIRECT_COUNT - 1}] Directos (12 bloques · 48 KB): ${directSample} ...`,
+            'info',
+          );
+          print(
+            `i_block[12] Ind. Simple (L=${DIRECT_COUNT}..${fmt(BRANCH_FIRST_LOGICAL.double - 1)} · 4 MB): Raíz ${simpleRoot}`,
+            'info',
+          );
+          print(
+            `i_block[13] Ind. Doble  (L=${fmt(BRANCH_FIRST_LOGICAL.double)}..${fmt(BRANCH_FIRST_LOGICAL.triple - 1)} · 4 GB): Raíz N1 ${doubleRoot}`,
+            'info',
+          );
+          print(
+            `i_block[14] Ind. Triple (L=${fmt(BRANCH_FIRST_LOGICAL.triple)}..${fmt(MAX_DATA_BLOCKS - 1)} · 4 TB): Raíz N1 ${tripleRoot}`,
+            'info',
+          );
         },
       },
       ps: {
@@ -338,12 +424,16 @@ export function TerminalPage() {
             print(`Aviso: el proceso PID ${pid} ya está TERMINATED`, 'warning');
             return;
           }
-          procSim.applyEvent({ type: 'exit', pid });
+          const res = procSim.applyEvent({ type: 'kill', pid });
+          if (!res.applied) {
+            print(`Error: ${res.reason}`, 'error');
+            return;
+          }
           print(`Proceso P${pid} finalizado (TERMINATED).`, 'success');
         },
       },
     };
-  }, [cwd, inodeSim, procSim]);
+  }, [cwd, blockMap, procSim]);
 
   return (
     <div

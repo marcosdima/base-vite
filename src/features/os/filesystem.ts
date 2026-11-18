@@ -305,12 +305,17 @@ export function unlink(fs: Filesystem, path: string): boolean {
     return false;
   }
 
-  const [removed] = entries.splice(index, 1);
-  const inode = lookupInode(fs.inodes, removed.inodeNumber);
+  const targetEntry = entries[index]!;
+  const inode = lookupInode(fs.inodes, targetEntry.inodeNumber);
 
   if (inode && getFileType(inode.mode) === 'directory') {
+    if (listDirectory(fs, normalized).length > 0) {
+      return false;
+    }
     delete fs.directories[normalized];
   }
+
+  const [removed] = entries.splice(index, 1);
 
   const released = releaseInode(fs.inodes, removed.inodeNumber);
 

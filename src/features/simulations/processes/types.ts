@@ -19,6 +19,7 @@ export type ProcessEventType =
   | 'io_wait'
   | 'io_complete'
   | 'exit'
+  | 'kill'
   | 'tick'
   | 'set_algorithm'
   | 'update_pcb';

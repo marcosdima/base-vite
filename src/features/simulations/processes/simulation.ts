@@ -270,6 +270,28 @@ export class ProcessLifecycleSimulation {
     return [true, ''];
   }
 
+  private handleKill(pid?: number): [boolean, string] {
+    if (pid === undefined || !this.pcbs[pid]) {
+      return [false, `P${pid} no existe.`];
+    }
+    const pcb = this.pcbs[pid]!;
+    if (pcb.state === 'TERMINATED') {
+      return [false, `P${pid} ya está en TERMINATED.`];
+    }
+    if (this.running === pid) {
+      this.running = null;
+    }
+    this.ready_queue = this.ready_queue.filter((p) => p !== pid);
+    this.waiting_queue = this.waiting_queue.filter((p) => p !== pid);
+    pcb.state = 'TERMINATED';
+    pcb.remaining_time = 0;
+    pcb.quantum_used = 0;
+    if (!this.terminated.includes(pid)) {
+      this.terminated.push(pid);
+    }
+    return [true, ''];
+  }
+
   private handleTick(): [boolean, string] {
     if (this.running === null) {
       return [
@@ -337,6 +359,10 @@ export class ProcessLifecycleSimulation {
       }
       case 'exit': {
         const [applied, reason] = this.handleExit(event.pid);
+        return { applied, reason };
+      }
+      case 'kill': {
+        const [applied, reason] = this.handleKill(event.pid);
         return { applied, reason };
       }
       default:

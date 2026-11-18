@@ -147,9 +147,12 @@ describe('InodesPage', () => {
     });
     fireEvent.click(preset100MB);
 
-    // Inspect logical block 2000
+    // Inspect logical block 2000 (allowing temporary empty input on backspace)
     const logicalInput = document.getElementById('logical-block-search') as HTMLInputElement;
+    fireEvent.change(logicalInput, { target: { value: '' } });
+    expect(logicalInput.value).toBe('');
     fireEvent.change(logicalInput, { target: { value: '2000' } });
+    expect(logicalInput.value).toBe('2000');
 
     // Logical block 2000 is in double indirect branch
     expect(screen.getAllByText(/Ind\. Doble/i).length).toBeGreaterThan(0);
@@ -172,5 +175,16 @@ describe('InodesPage', () => {
     fireEvent.click(pathTabBtn);
     expect(pathTabBtn).toHaveClass('active');
     expect(screen.getByText(/Ruta Completa de Resolución/i)).toBeInTheDocument();
+
+    // Switch to Double Indirect tab and then shrink file to 48 KB (only direct pointers)
+    fireEvent.click(doubleTabBtn);
+    expect(doubleTabBtn).toHaveClass('active');
+    const preset48KB = screen.getByRole('button', { name: /48 KB - Llena los 12 directos/i });
+    fireEvent.click(preset48KB);
+
+    // Since Double Indirect is no longer allocated, active tab automatically falls back to 'Todas las ramas'
+    const allTabBtn = screen.getByRole('tab', { name: /Todas las ramas/i });
+    expect(allTabBtn).toHaveClass('active');
+    expect(screen.getByText(/Punteros Directos:/i)).toBeInTheDocument();
   });
 });

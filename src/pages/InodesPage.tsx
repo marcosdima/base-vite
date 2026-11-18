@@ -27,9 +27,21 @@ import {
   PTRS_PER_BLOCK,
   blocksForBytes,
 } from '../features/simulations/inodes/blockMap';
-import { InodeSimulation } from '../features/simulations/inodes/simulation';
 import { fmt, fmtHex, formatBytes } from '../utils/format';
 import { logSliderToValue, valueToLogSlider } from '../utils/range';
+
+const BASE_INODE_METADATA = {
+  filename: 'documento.dat',
+  mode_octal: '0644',
+  mode_str: '-rw-r--r--',
+  user: 'ubuntu (1000)',
+  links_count: 1,
+  ext4_flags: '0x00000000 (Sin EXT4_EXTENTS_FL · Mapa Indirecto)',
+  atime: '2026-11-10 12:45:02 UTC',
+  mtime: '2026-11-10 12:48:30 UTC',
+  ctime: '2026-11-10 12:48:30 UTC',
+  generation: '0x3fa1c94b',
+} as const;
 
 interface InodeMetaItem {
   id: string;
@@ -72,12 +84,12 @@ const PRESETS: { label: string; hint: string; blocks: number }[] = [
 export function InodesPage() {
   const [dataBlocks, setDataBlocks] = useState<number>(0);
   const [selectedLogical, setSelectedLogical] = useState<number | null>(null);
+  const [logicalInput, setLogicalInput] = useState<string>('0');
   const [viewMode, setViewMode] = useState<'pointers' | 'metadata'>('pointers');
   const [selectedMeta, setSelectedMeta] = useState<InodeMetaItem | null>(null);
   const [sizeInput, setSizeInput] = useState<string>('');
   const [sizeUnit, setSizeUnit] = useState<Unit>('MB');
 
-  const sim = useMemo(() => new InodeSimulation({ seed: 1234 }), []);
   const map = useMemo(() => new BlockMap(1234), []);
 
   // Close explanation modal on Escape
@@ -93,14 +105,13 @@ export function InodesPage() {
   const totalBlocks = useMemo(() => map.totalBlocks(dataBlocks), [map, dataBlocks]);
 
   const metadata = useMemo(() => {
-    const base = sim.getInodeMetadata(0);
     return {
-      ...base,
+      ...BASE_INODE_METADATA,
       size_bytes: sizeBytes,
       size_formatted: formatBytes(sizeBytes),
       blocks_sectors: totalBlocks * (BLOCK_SIZE / 512),
     };
-  }, [sim, sizeBytes, totalBlocks]);
+  }, [sizeBytes, totalBlocks]);
 
   const resolution = useMemo(
     () =>
@@ -154,10 +165,12 @@ export function InodesPage() {
   const selectLogical = useCallback((logical: number | null, blocks: number) => {
     if (logical === null || blocks === 0) {
       setSelectedLogical(null);
+      setLogicalInput('0');
       return;
     }
     const clamped = Math.max(0, Math.min(blocks - 1, logical));
     setSelectedLogical(clamped);
+    setLogicalInput(String(clamped));
   }, []);
 
   /** Resize the file; the selection follows the last written block. */
@@ -299,7 +312,7 @@ export function InodesPage() {
           'Un identificador de versión que cambia cada vez que el inodo es reutilizado tras ser eliminado un archivo anterior.',
         kernelRole:
           'Evita confusiones en sistemas de archivos en red como NFS, asegurando que ningún cliente use identificadores obsoletos de archivos eliminados.',
-        command: 'debugfs -R "stat <42>" /dev/sda1',
+        command: 'debugfs -R "stat documento.dat" /dev/sda1',
       },
     ];
   }, [metadata, totalBlocks]);
@@ -368,7 +381,7 @@ export function InodesPage() {
                       id={`ptr-direct-${i}`}
                       title={
                         isAllocated
-                          ? `Directo [${i}]: Bloque lógico ${i} ➜ Físico #${fmt(phys!)}`
+                          ? `Directo [${i}]: Bloque lógico ${i} ➜ Físico ${fmtHex(phys!)} (#${fmt(phys!)})`
                           : `Directo [${i}]: No asignado aún (NULL)`
                       }
                       onClick={() => {
@@ -660,11 +673,21 @@ export function InodesPage() {
                     id="logical-block-search"
                     min={0}
                     max={Math.max(0, dataBlocks - 1)}
-                    value={selectedLogical ?? 0}
+                    value={dataBlocks === 0 ? '0' : logicalInput}
                     disabled={dataBlocks === 0}
                     onChange={(e) => {
-                      const val = parseInt(e.target.value, 10);
-                      if (!isNaN(val)) selectLogical(val, dataBlocks);
+                      const raw = e.target.value;
+                      setLogicalInput(raw);
+                      if (raw.trim() !== '') {
+                        const val = parseInt(raw, 10);
+                        if (!Number.isNaN(val)) {
+                          const clamped = Math.max(0, Math.min(dataBlocks - 1, val));
+                          setSelectedLogical(clamped);
+                        }
+                      }
+                    }}
+                    onBlur={() => {
+                      setLogicalInput(String(selectedLogical ?? 0));
                     }}
                     placeholder="0"
                   />

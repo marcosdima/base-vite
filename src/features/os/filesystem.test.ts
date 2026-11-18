@@ -126,4 +126,19 @@ describe('filesystem operations', () => {
 
     expect((inode?.mode ?? 0) & 0o170000).toBe(0o120000);
   });
+
+  it('should refuse to unlink a non-empty directory and allow unlinking an empty directory', () => {
+    const fs = createSeedFilesystem();
+
+    // /home/dev has files and subdirectories
+    expect(unlink(fs, '/home/dev')).toBe(false);
+    expect(stat(fs, '/home/dev')).toBeDefined();
+    expect(stat(fs, '/home/dev/notes.md')).toBeDefined();
+
+    // Create an empty directory and remove it
+    mkdir(fs, '/home/dev/empty-dir');
+    expect(stat(fs, '/home/dev/empty-dir')).toBeDefined();
+    expect(unlink(fs, '/home/dev/empty-dir')).toBe(true);
+    expect(stat(fs, '/home/dev/empty-dir')).toBeUndefined();
+  });
 });

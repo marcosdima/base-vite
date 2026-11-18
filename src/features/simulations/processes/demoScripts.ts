@@ -28,16 +28,16 @@ export const SCRIPT_FCFS: DemoStep[] = [
     text: 'El planificador de corto plazo selecciona a P1 por encontrarse al frente de la cola FIFO. P1 transiciona a RUNNING.',
   },
   {
-    events: [{ type: 'io_wait', pid: 1 }],
+    events: [{ type: 'tick' }, { type: 'io_wait', pid: 1 }],
     transition: 'E/S o evento espera',
     tag: 'FCFS · Bloqueo de P1',
-    text: 'P1 invoca una llamada al sistema para una operación de E/S. El proceso se bloquea, pasa al estado WAITING y libera la CPU.',
+    text: 'Tras ejecutar 1 tick en CPU (restan 2), P1 invoca una llamada al sistema para una operación de E/S. El proceso se bloquea, pasa a WAITING y libera la CPU.',
   },
   {
     events: [{ type: 'dispatch', pid: 2 }],
     transition: 'Despachar',
     tag: 'FCFS · Despachar P2',
-    text: 'Al encontrarse libre el procesador, el planificador FCFS despacha al siguiente proceso en la cola de listos: P2.',
+    text: 'Al encontrarse libre el procesador, el planificador FCFS despacha al siguiente proceso en la cola de listos: P2 (ráfaga 4).',
   },
   {
     events: [{ type: 'io_complete', pid: 1 }],
@@ -46,34 +46,34 @@ export const SCRIPT_FCFS: DemoStep[] = [
     text: 'Finaliza la operación de E/S de P1 mediante una interrupción de dispositivo. P1 se inserta al final de la cola READY [P3, P1], mientras P2 continúa en ejecución (política no preemptiva).',
   },
   {
-    events: [{ type: 'exit', pid: 2 }],
+    events: [{ type: 'tick' }, { type: 'tick' }, { type: 'tick' }, { type: 'tick' }],
     transition: 'Salir',
     tag: 'FCFS · Salida de P2',
-    text: 'P2 completa su ráfaga de CPU sin interrupciones, transiciona a TERMINATED y el sistema operativo libera sus recursos.',
+    text: 'P2 completa sus 4 ticks de ráfaga en CPU sin interrupciones, transiciona a TERMINATED y el sistema operativo libera sus recursos.',
   },
   {
     events: [{ type: 'dispatch', pid: 3 }],
     transition: 'Despachar',
     tag: 'FCFS · Despachar P3',
-    text: 'Con la CPU disponible y la cola READY conformada por [P3, P1], el planificador asigna el procesador a P3.',
+    text: 'Con la CPU disponible y la cola READY conformada por [P3, P1], el planificador asigna el procesador a P3 (ráfaga 2).',
   },
   {
-    events: [{ type: 'exit', pid: 3 }],
+    events: [{ type: 'tick' }, { type: 'tick' }],
     transition: 'Salir',
     tag: 'FCFS · Salida de P3',
-    text: 'P3 concluye su ejecución y pasa al estado TERMINATED.',
+    text: 'P3 concluye sus 2 ticks de ejecución y pasa al estado TERMINATED.',
   },
   {
     events: [{ type: 'dispatch', pid: 1 }],
     transition: 'Despachar',
     tag: 'FCFS · Despachar P1',
-    text: 'P1 es el único proceso restante en la cola READY y es despachado nuevamente a la CPU.',
+    text: 'P1 es el único proceso restante en la cola READY y es despachado nuevamente a la CPU para ejecutar sus 2 ticks restantes.',
   },
   {
-    events: [{ type: 'exit', pid: 1 }],
+    events: [{ type: 'tick' }, { type: 'tick' }],
     transition: 'Salir',
     tag: 'FCFS · Finalizado',
-    text: 'P1 finaliza su ejecución y pasa a TERMINATED. La secuencia bajo política FCFS ha concluido.',
+    text: 'P1 finaliza los 2 ticks restantes de su ráfaga y pasa a TERMINATED. La secuencia bajo política FCFS ha concluido.',
   },
 ];
 
@@ -85,7 +85,7 @@ export const SCRIPT_RR: DemoStep[] = [
       { type: 'create', pid: 2, burst_time: 3 },
     ],
     tag: 'Round Robin · Creación',
-    text: 'Se crean P1 (ráfaga de 4 ticks) y P2 (ráfaga de 3 ticks). Se configura el planificador Round Robin con quantum q = 2 ticks.',
+    text: 'Se crean P1 (ráfaga de 4 ticks) y P2 (ráfaga de 3 ticks) en estado NEW. Se configura el planificador Round Robin con quantum q = 2 ticks.',
   },
   {
     events: [
@@ -100,25 +100,25 @@ export const SCRIPT_RR: DemoStep[] = [
     events: [{ type: 'dispatch', pid: 1 }],
     transition: 'Despachar',
     tag: 'Round Robin · Despacho P1',
-    text: 'El planificador asigna la CPU a P1 e inicia el conteo del quantum asignado.',
+    text: 'El planificador asigna la CPU a P1 e inicia el conteo del quantum asignado (0 / 2).',
   },
   {
-    events: [{ type: 'interrupt', pid: 1 }],
+    events: [{ type: 'tick' }, { type: 'tick' }],
     transition: 'Interrumpir',
     tag: 'Round Robin · Expiración de Quantum',
-    text: 'P1 alcanza el límite de su quantum (2 ticks). El temporizador genera una interrupción, desaloja al proceso y lo reubica al final de READY: [P2, P1].',
+    text: 'P1 consume 2 ticks (restan 2) y alcanza el límite de su quantum. El temporizador genera una interrupción, desaloja al proceso y lo reubica al final de READY: [P2, P1].',
   },
   {
     events: [{ type: 'dispatch', pid: 2 }],
     transition: 'Despachar',
     tag: 'Round Robin · Despacho P2',
-    text: 'Se realiza el cambio de contexto y el planificador asigna el procesador a P2.',
+    text: 'Se realiza el cambio de contexto y el planificador asigna el procesador a P2 (ráfaga de 3 ticks).',
   },
   {
-    events: [{ type: 'interrupt', pid: 2 }],
+    events: [{ type: 'tick' }, { type: 'tick' }],
     transition: 'Interrumpir',
     tag: 'Round Robin · Expiración de Quantum',
-    text: 'P2 consume los 2 ticks de su quantum y es desalojado por interrupción de reloj, retornando a READY. La cola queda [P1, P2].',
+    text: 'P2 consume los 2 ticks de su quantum (resta 1) y es desalojado por interrupción de reloj, retornando al final de READY: [P1, P2].',
   },
   {
     events: [{ type: 'dispatch', pid: 1 }],
@@ -127,10 +127,10 @@ export const SCRIPT_RR: DemoStep[] = [
     text: 'El planificador despacha nuevamente a P1 para ejecutar los 2 ticks restantes de su ráfaga.',
   },
   {
-    events: [{ type: 'exit', pid: 1 }],
+    events: [{ type: 'tick' }, { type: 'tick' }],
     transition: 'Salir',
     tag: 'Round Robin · Salida P1',
-    text: 'P1 completa su ráfaga dentro del segundo turno asignado y transiciona a TERMINATED.',
+    text: 'P1 completa sus 2 ticks restantes dentro del segundo turno asignado y transiciona a TERMINATED.',
   },
   {
     events: [{ type: 'dispatch', pid: 2 }],
@@ -139,10 +139,10 @@ export const SCRIPT_RR: DemoStep[] = [
     text: 'P2 obtiene la CPU para ejecutar el último tick restante de su ráfaga.',
   },
   {
-    events: [{ type: 'exit', pid: 2 }],
+    events: [{ type: 'tick' }],
     transition: 'Salir',
     tag: 'Round Robin · Finalizado',
-    text: 'P2 concluye su ejecución y pasa a TERMINATED. La secuencia bajo política Round Robin ha concluido.',
+    text: 'P2 completa su último tick antes de agotar el quantum y pasa a TERMINATED. La secuencia bajo política Round Robin ha concluido.',
   },
 ];
 
@@ -155,7 +155,7 @@ export const SCRIPT_SJF: DemoStep[] = [
       { type: 'create', pid: 3, burst_time: 4 },
     ],
     tag: 'SJF · Creación',
-    text: 'Se crean P1 (ráfaga estimada de 6 ticks), P2 (ráfaga de 2 ticks) y P3 (ráfaga de 4 ticks) bajo la política Shortest Job First (SJF).',
+    text: 'Se crean P1 (ráfaga estimada de 6 ticks), P2 (ráfaga de 2 ticks) y P3 (ráfaga de 4 ticks) bajo la política no preemptiva Shortest Job First (SJF).',
   },
   {
     events: [
@@ -165,7 +165,7 @@ export const SCRIPT_SJF: DemoStep[] = [
     ],
     transition: 'Admitir',
     tag: 'SJF · Ordenamiento por Ráfaga',
-    text: 'Al admitirse en READY, el planificador SJF ordena la cola de menor a mayor ráfaga de CPU: [P2 (2 ticks), P3 (4 ticks), P1 (6 ticks)].',
+    text: 'Al admitirse en READY, el planificador SJF ordena la cola de menor a mayor ráfaga estimada: [P2 (2 ticks), P3 (4 ticks), P1 (6 ticks)].',
   },
   {
     events: [{ type: 'dispatch', pid: 2 }],
@@ -174,19 +174,19 @@ export const SCRIPT_SJF: DemoStep[] = [
     text: 'El planificador selecciona a P2 por tener el trabajo más corto (2 ticks), evitando que espere detrás de P1 (elimina el efecto convoy de FCFS).',
   },
   {
-    events: [{ type: 'exit', pid: 2 }],
+    events: [{ type: 'tick' }, { type: 'tick' }],
     transition: 'Salir',
     tag: 'SJF · Salida P2',
-    text: 'P2 finaliza rápidamente su ráfaga de 2 ticks y pasa a TERMINATED, reduciendo el tiempo de espera promedio del sistema.',
+    text: 'P2 finaliza rápidamente sus 2 ticks de CPU y pasa a TERMINATED, reduciendo el tiempo de espera promedio del sistema.',
   },
   {
     events: [{ type: 'dispatch', pid: 3 }],
     transition: 'Despachar',
     tag: 'SJF · Despacho P3',
-    text: 'Entre los procesos restantes en READY [P3 (4 ticks), P1 (6 ticks)], el planificador selecciona a P3 por tener menor ráfaga.',
+    text: 'Entre los procesos restantes en READY [P3 (4 ticks), P1 (6 ticks)], el planificador selecciona a P3 por tener menor ráfaga estimada.',
   },
   {
-    events: [{ type: 'exit', pid: 3 }],
+    events: [{ type: 'tick' }, { type: 'tick' }, { type: 'tick' }, { type: 'tick' }],
     transition: 'Salir',
     tag: 'SJF · Salida P3',
     text: 'P3 completa sus 4 ticks de CPU y transiciona al estado TERMINATED.',
@@ -198,10 +198,17 @@ export const SCRIPT_SJF: DemoStep[] = [
     text: 'Finalmente se despacha a P1 (el proceso con la ráfaga más larga, de 6 ticks) hacia la CPU.',
   },
   {
-    events: [{ type: 'exit', pid: 1 }],
+    events: [
+      { type: 'tick' },
+      { type: 'tick' },
+      { type: 'tick' },
+      { type: 'tick' },
+      { type: 'tick' },
+      { type: 'tick' },
+    ],
     transition: 'Salir',
     tag: 'SJF · Finalizado',
-    text: 'P1 concluye su ejecución y pasa a TERMINATED. La secuencia bajo política SJF ha finalizado con tiempo de espera promedio mínimo.',
+    text: 'P1 concluye sus 6 ticks de ejecución y pasa a TERMINATED. La secuencia bajo política SJF ha finalizado con tiempo de espera promedio mínimo.',
   },
 ];
 
@@ -214,7 +221,7 @@ export const SCRIPT_PRIORITY: DemoStep[] = [
       { type: 'create', pid: 3, priority: 2, burst_time: 4 },
     ],
     tag: 'Prioridad · Creación',
-    text: 'Se crean los procesos P1 (prioridad 3), P2 (prioridad 1, máxima) y P3 (prioridad 2) bajo la política de planificación por Prioridades.',
+    text: 'Se crean P1 (prioridad 3, ráfaga 3), P2 (prioridad 1 máxima, ráfaga 2) y P3 (prioridad 2, ráfaga 4) bajo planificación no preemptiva por Prioridades.',
   },
   {
     events: [
@@ -233,10 +240,10 @@ export const SCRIPT_PRIORITY: DemoStep[] = [
     text: 'El planificador selecciona a P2 por poseer la prioridad más alta (1), independientemente de que P1 haya sido creado antes.',
   },
   {
-    events: [{ type: 'exit', pid: 2 }],
+    events: [{ type: 'tick' }, { type: 'tick' }],
     transition: 'Salir',
     tag: 'Prioridad · Salida P2',
-    text: 'P2 completa su ráfaga de CPU y transiciona al estado TERMINATED.',
+    text: 'P2 completa sus 2 ticks de CPU y transiciona al estado TERMINATED.',
   },
   {
     events: [{ type: 'dispatch', pid: 3 }],
@@ -245,21 +252,21 @@ export const SCRIPT_PRIORITY: DemoStep[] = [
     text: 'Entre los procesos disponibles en READY [P3 (Pri: 2), P1 (Pri: 3)], el planificador selecciona a P3.',
   },
   {
-    events: [{ type: 'exit', pid: 3 }],
+    events: [{ type: 'tick' }, { type: 'tick' }, { type: 'tick' }, { type: 'tick' }],
     transition: 'Salir',
     tag: 'Prioridad · Salida P3',
-    text: 'P3 finaliza su ráfaga de ejecución y pasa a TERMINATED.',
+    text: 'P3 finaliza sus 4 ticks de ejecución y pasa a TERMINATED.',
   },
   {
     events: [{ type: 'dispatch', pid: 1 }],
     transition: 'Despachar',
     tag: 'Prioridad · Despacho P1',
-    text: 'Sin procesos de mayor prioridad en la cola de listos, el planificador asigna la CPU a P1.',
+    text: 'Sin procesos de mayor prioridad en la cola de listos, el planificador asigna la CPU a P1 (ráfaga 3).',
   },
   {
-    events: [{ type: 'exit', pid: 1 }],
+    events: [{ type: 'tick' }, { type: 'tick' }, { type: 'tick' }],
     transition: 'Salir',
     tag: 'Prioridad · Finalizado',
-    text: 'P1 completa su ejecución y pasa a TERMINATED. La secuencia bajo política por Prioridades ha concluido.',
+    text: 'P1 completa sus 3 ticks de ejecución y pasa a TERMINATED. La secuencia bajo política por Prioridades ha concluido.',
   },
 ];

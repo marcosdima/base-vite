@@ -185,6 +185,34 @@ describe('ProcessLifecycleSimulation', () => {
     expect(sim.ready_queue).toEqual([1, 2]);
   });
 
+  it('CA9: kill terminates any active process from READY, RUNNING, or WAITING and cleans up queues', () => {
+    const sim = new ProcessLifecycleSimulation();
+    sim.rebuild([
+      { type: 'create', pid: 1, burst_time: 4 },
+      { type: 'create', pid: 2, burst_time: 3 },
+      { type: 'admit', pid: 1 },
+      { type: 'admit', pid: 2 },
+      { type: 'dispatch', pid: 1 },
+    ]);
+
+    // Kill P2 while in READY
+    const killReady = sim.applyEvent({ type: 'kill', pid: 2 });
+    expect(killReady.applied).toBe(true);
+    expect(sim.pcbs[2]?.state).toBe('TERMINATED');
+    expect(sim.ready_queue).toEqual([]);
+    expect(sim.terminated).toContain(2);
+
+    // Kill P1 while in RUNNING
+    const killRunning = sim.applyEvent({ type: 'kill', pid: 1 });
+    expect(killRunning.applied).toBe(true);
+    expect(sim.running).toBeNull();
+    expect(sim.pcbs[1]?.state).toBe('TERMINATED');
+
+    // Killing an already terminated process fails cleanly
+    const killAgain = sim.applyEvent({ type: 'kill', pid: 1 });
+    expect(killAgain.applied).toBe(false);
+  });
+
   it('successfully executes all demo scripts (FCFS, RR, SJF, PRIORITY)', () => {
     // Test FCFS
     const simFCFS = new ProcessLifecycleSimulation();

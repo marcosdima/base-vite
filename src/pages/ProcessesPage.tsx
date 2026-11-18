@@ -96,6 +96,11 @@ export function ProcessesPage() {
   const [theoryTab, setTheoryTab] = useState<'fcfs' | 'rr' | 'sjf' | 'priority' | 'mlfq'>('fcfs');
   const [alertInfo, setAlertInfo] = useState<{ title: string; message: string } | null>(null);
 
+  const openTheoryModal = () => {
+    setTheoryTab(algorithm.toLowerCase() as 'fcfs' | 'rr' | 'sjf' | 'priority');
+    setIsTheoryOpen(true);
+  };
+
   // Draggable PCB inspector position relative to diagramWrapRef
   const pcbPanelRef = useRef<HTMLDivElement | null>(null);
   const [pcbPos, setPcbPos] = useState<{ x: number; y: number } | null>(null);
@@ -202,11 +207,62 @@ export function ProcessesPage() {
     const handleResize = () => updateArrows();
     window.addEventListener('resize', handleResize);
     const t = setTimeout(updateArrows, 100);
+
+    let observer: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(() => updateArrows());
+      if (diagramWrapRef.current) observer.observe(diagramWrapRef.current);
+      for (const state of ['NEW', 'READY', 'RUNNING', 'WAITING', 'TERMINATED']) {
+        const el = document.getElementById(`node-${state}`);
+        if (el) observer.observe(el);
+      }
+    }
+
     return () => {
       window.removeEventListener('resize', handleResize);
       clearTimeout(t);
+      observer?.disconnect();
     };
   }, [updateArrows]);
+
+  // Keyboard shortcuts: Escape closes modals; ArrowLeft/ArrowRight step through demo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (alertInfo) {
+          setAlertInfo(null);
+          return;
+        }
+        if (isTheoryOpen) {
+          setIsTheoryOpen(false);
+          return;
+        }
+      }
+
+      if (mode !== 'demo' || isTheoryOpen || alertInfo) return;
+      const target = e.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === 'INPUT' ||
+          target.tagName === 'SELECT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        handleDemoPrev();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        handleDemoNext();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mode, isTheoryOpen, alertInfo, handleDemoPrev, handleDemoNext]);
 
   // Drag handler for floating PCB inspector
   const handlePcbDragStart = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -652,7 +708,7 @@ export function ProcessesPage() {
             className="btn-theory-info"
             id="btn-open-theory"
             title="Ver guía de políticas del planificador"
-            onClick={() => setIsTheoryOpen(true)}
+            onClick={openTheoryModal}
           >
             <LuBookOpen /> Guía del Planificador
           </button>
@@ -1150,6 +1206,12 @@ export function ProcessesPage() {
       {/* Modal: Guía Teórica de Políticas del Planificador */}
       {isTheoryOpen && (
         <div className="theory-modal-backdrop" id="theory-modal">
+          <button
+            type="button"
+            className="modal-backdrop-dismiss"
+            onClick={() => setIsTheoryOpen(false)}
+            aria-label="Cerrar modal"
+          />
           <div
             className="theory-modal-card"
             role="dialog"
@@ -1261,12 +1323,13 @@ export function ProcessesPage() {
 
               {theoryTab === 'sjf' && (
                 <div className="theory-tab-content active" id="tab-content-sjf">
-                  <h4>Shortest Job First / Shortest Remaining Time First</h4>
-                  <span className="algo-badge">Óptimo en tiempo de espera</span>
+                  <h4>Shortest Job First (SJF) / SRTF</h4>
+                  <span className="algo-badge">No Preemptivo (SJF) · Óptimo en espera</span>
                   <p>
-                    Selecciona el proceso con la ráfaga de CPU más corta. En su versión preemptiva
-                    (SRTF), si llega un proceso nuevo con menor tiempo restante que el que está
-                    corriendo, lo desaloja.
+                    Selecciona el proceso con la ráfaga de CPU estimada más corta (este simulador
+                    implementa la variante no preemptiva SJF). En su versión preemptiva (SRTF), si
+                    llega un proceso nuevo con menor tiempo restante que el que está corriendo, lo
+                    desaloja.
                   </p>
                   <div className="theory-pros-cons">
                     <div className="pro">
@@ -1276,7 +1339,7 @@ export function ProcessesPage() {
                     <div className="con">
                       <strong>Desventaja:</strong> En la práctica es imposible conocer con exactitud
                       la duración de la próxima ráfaga de CPU; se debe estimar mediante promedios
-                      exponenciales.
+                      exponenciales. Además, los procesos largos pueden sufrir inanición.
                     </div>
                   </div>
                 </div>
@@ -1285,11 +1348,12 @@ export function ProcessesPage() {
               {theoryTab === 'priority' && (
                 <div className="theory-tab-content active" id="tab-content-priority">
                   <h4>Planificación por Prioridades</h4>
-                  <span className="algo-badge">Preemptivo o No Preemptivo</span>
+                  <span className="algo-badge">No Preemptivo en este simulador</span>
                   <p>
                     A cada proceso se le asigna un valor numérico de prioridad. La CPU se asigna al
-                    proceso de mayor prioridad disponible (en este simulador, 1 es la máxima
-                    prioridad y 5 la mínima).
+                    proceso de mayor prioridad disponible en <code>READY</code> (en este simulador,
+                    1 es la máxima prioridad y 5 la mínima). En modo manual puedes ajustar la
+                    prioridad en vivo para observar el reordenamiento de la cola.
                   </p>
                   <div className="theory-pros-cons">
                     <div className="pro">
