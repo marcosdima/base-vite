@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, fireEvent, render } from '../../../test/render';
+import { useThemeContext } from '@/styles/AppThemeProvider';
+import { screen, fireEvent, render } from '@/test/render';
 import { ThemeChanger } from './ThemeChanger';
 
 vi.mock('react-icons/fi', () => ({
@@ -7,14 +8,12 @@ vi.mock('react-icons/fi', () => ({
   FiMoon: (props: Record<string, unknown>) => <svg data-testid="icon-moon" {...props} />,
 }));
 
-vi.mock('../../../styles/AppThemeProvider', () => ({
+vi.mock('@/styles/AppThemeProvider', () => ({
   useThemeContext: vi.fn(() => ({
     isDark: false,
     toggleTheme: vi.fn(),
   })),
 }));
-
-import { useThemeContext } from '../../../styles/AppThemeProvider';
 
 const mockedUseThemeContext = vi.mocked(useThemeContext);
 

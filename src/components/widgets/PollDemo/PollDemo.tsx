@@ -9,15 +9,15 @@ import {
   PollQuestion,
   PollResult,
   PollWrap,
-} from '../../../../styles/components/inputs/pollDemo.styles';
+} from './PollDemo.styles';
 
 function createBasePoll(t: (key: string) => string) {
   return new Poll({
-    question: t('dashboard.pollExample.question'),
+    question: t('widgets.pollExample.question'),
     options: [
-      { id: 'a', label: t('dashboard.pollExample.optionA'), votes: 0, percentage: 0 },
-      { id: 'b', label: t('dashboard.pollExample.optionB'), votes: 0, percentage: 0 },
-      { id: 'c', label: t('dashboard.pollExample.optionC'), votes: 0, percentage: 0 },
+      { id: 'a', label: t('widgets.pollExample.optionA'), votes: 0, percentage: 0 },
+      { id: 'b', label: t('widgets.pollExample.optionB'), votes: 0, percentage: 0 },
+      { id: 'c', label: t('widgets.pollExample.optionC'), votes: 0, percentage: 0 },
     ],
     isOpen: true,
   });
@@ -62,10 +62,10 @@ export function PollDemo() {
 
       <PollActions>
         <PollActionButton type="button" onClick={handleClose}>
-          {t('dashboard.pollExample.close')}
+          {t('widgets.pollExample.close')}
         </PollActionButton>
         <PollActionButton type="button" onClick={handleReset}>
-          {t('dashboard.pollExample.reset')}
+          {t('widgets.pollExample.reset')}
         </PollActionButton>
       </PollActions>
     </PollWrap>

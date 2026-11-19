@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from '../../../test/render';
 import { describe, expect, it } from 'vitest';
+import { fireEvent, render, screen } from '@/test/render';
 import { SpotlightCardGrid, type SpotlightCardItem } from './SpotlightCardGrid';
 
 const ITEMS: SpotlightCardItem[] = [
@@ -10,7 +10,7 @@ const ITEMS: SpotlightCardItem[] = [
     icon: <span>1</span>,
     tag: 'Tag 1',
     description: 'First description',
-    accentClass: 'pad-inodes',
+    accentColor: '#38bdf8',
   },
   {
     id: 'two',
@@ -19,7 +19,7 @@ const ITEMS: SpotlightCardItem[] = [
     icon: <span>2</span>,
     tag: 'Tag 2',
     description: 'Second description',
-    accentClass: 'pad-processes',
+    accentColor: '#a855f7',
   },
 ];
 

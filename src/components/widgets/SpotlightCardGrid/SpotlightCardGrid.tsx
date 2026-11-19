@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { LuArrowRight } from 'react-icons/lu';
-import { CardsGrid, CardLink, GridContainer, SlidingShadow } from './SpotlightCardGrid.styles';
+import { useTheme } from 'styled-components';
+import { CardLink, CardsGrid, GridContainer, SlidingShadow } from './SpotlightCardGrid.styles';
 
 export interface SpotlightCardItem {
   id: string;
@@ -18,36 +19,26 @@ export interface SpotlightCardGridProps {
   actionLabel?: string;
 }
 
-const DEFAULT_ACCENTS: Record<string, string> = {
-  'pad-inodes': '#38bdf8',
-  'pad-processes': '#a855f7',
-  'pad-terminal': '#10b981',
-};
-
 /**
  * Interactive card grid with a spring-physics sliding backdrop highlight that tracks
  * the hovered or focused card index.
  */
-export function SpotlightCardGrid({
-  items,
-  actionLabel = 'Ingresar a la simulación',
-}: SpotlightCardGridProps) {
+export function SpotlightCardGrid({ items, actionLabel = 'Explore' }: SpotlightCardGridProps) {
+  const theme = useTheme();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [lastIndex, setLastIndex] = useState<number>(0);
 
+  const fallbackAccent = theme.colors.accent;
   const activeIndex = hoveredIndex !== null ? hoveredIndex : lastIndex;
   const isVisible = hoveredIndex !== null;
   const activeItem = items[activeIndex];
-  const activeAccent =
-    activeItem?.accentColor ??
-    (activeItem?.accentClass ? DEFAULT_ACCENTS[activeItem.accentClass] : undefined) ??
-    '#38bdf8';
+  const activeAccent = activeItem?.accentColor ?? fallbackAccent;
 
   return (
-    <GridContainer className="home-pads-container">
+    <GridContainer className="spotlight-grid-container">
       <CardsGrid
         $count={items.length}
-        className="home-pads-grid"
+        className="spotlight-cards-grid"
         onMouseLeave={() => setHoveredIndex(null)}
       >
         <SlidingShadow
@@ -63,10 +54,7 @@ export function SpotlightCardGrid({
         />
 
         {items.map((item, idx) => {
-          const itemAccent =
-            item.accentColor ??
-            (item.accentClass ? DEFAULT_ACCENTS[item.accentClass] : undefined) ??
-            '#38bdf8';
+          const itemAccent = item.accentColor ?? fallbackAccent;
 
           return (
             <CardLink
@@ -74,7 +62,7 @@ export function SpotlightCardGrid({
               to={item.path}
               $hovered={hoveredIndex === idx}
               $accentColor={itemAccent}
-              className={`huge-sim-pad ${item.accentClass ?? ''} ${
+              className={`spotlight-card ${item.accentClass ?? ''} ${
                 hoveredIndex === idx ? 'is-hovered' : ''
               }`.trim()}
               id={`pad-${item.id}`}

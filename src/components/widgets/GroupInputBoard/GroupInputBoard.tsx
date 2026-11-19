@@ -10,11 +10,11 @@ import {
   GroupNameInput,
   KeyItem,
   KeysList,
-} from '../../../../styles/components/inputs/groupInput.styles';
+} from './GroupInputBoard.styles';
 
 const DEFAULT_KEYS = ['username', 'password', 'role', 'country', 'createdAt', 'status'];
 
-interface GroupInputBoardProps {
+export interface GroupInputBoardProps {
   keys?: string[];
 }
 
@@ -23,8 +23,8 @@ export function GroupInputBoard({ keys = DEFAULT_KEYS }: GroupInputBoardProps) {
   const [groupInput, setGroupInput] = useState<GroupInput>(
     () =>
       new GroupInput({
-        groupAName: t('dashboard.groupInput.defaultGroupA'),
-        groupBName: t('dashboard.groupInput.defaultGroupB'),
+        groupAName: t('widgets.groupInput.defaultGroupA'),
+        groupBName: t('widgets.groupInput.defaultGroupB'),
         groupAKeys: keys,
         groupBKeys: [],
       }),
@@ -44,7 +44,7 @@ export function GroupInputBoard({ keys = DEFAULT_KEYS }: GroupInputBoardProps) {
 
   function renderKeys(items: string[]) {
     if (items.length === 0) {
-      return <EmptyState>{t('dashboard.groupInput.empty')}</EmptyState>;
+      return <EmptyState>{t('widgets.groupInput.empty')}</EmptyState>;
     }
 
     return (
@@ -64,7 +64,7 @@ export function GroupInputBoard({ keys = DEFAULT_KEYS }: GroupInputBoardProps) {
 
   return (
     <GroupInputWrap>
-      <DragHint>{t('dashboard.groupInput.hint')}</DragHint>
+      <DragHint>{t('widgets.groupInput.hint')}</DragHint>
 
       <GroupColumns>
         <GroupColumn
@@ -76,8 +76,8 @@ export function GroupInputBoard({ keys = DEFAULT_KEYS }: GroupInputBoardProps) {
             onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
               setGroupInput((current) => current.withGroupName('a', event.target.value))
             }
-            placeholder={t('dashboard.groupInput.defaultGroupA')}
-            aria-label={t('dashboard.groupInput.groupAAria')}
+            placeholder={t('widgets.groupInput.defaultGroupA')}
+            aria-label={t('widgets.groupInput.groupAAria')}
           />
           {renderKeys(groupInput.groupAKeys)}
         </GroupColumn>
@@ -91,8 +91,8 @@ export function GroupInputBoard({ keys = DEFAULT_KEYS }: GroupInputBoardProps) {
             onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
               setGroupInput((current) => current.withGroupName('b', event.target.value))
             }
-            placeholder={t('dashboard.groupInput.defaultGroupB')}
-            aria-label={t('dashboard.groupInput.groupBAria')}
+            placeholder={t('widgets.groupInput.defaultGroupB')}
+            aria-label={t('widgets.groupInput.groupBAria')}
           />
           {renderKeys(groupInput.groupBKeys)}
         </GroupColumn>

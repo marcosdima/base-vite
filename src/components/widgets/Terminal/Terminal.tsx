@@ -27,7 +27,7 @@ export function Terminal({
   maxHeight,
   commands = {},
   onCommand,
-  autoFocus = true,
+  focusOnMount = false,
   className,
 }: TerminalProps) {
   const instanceId = useId();
@@ -57,12 +57,12 @@ export function Terminal({
     }
   }, [lines]);
 
-  // Auto-focus input
+  // Focus input on mount when requested
   useEffect(() => {
-    if (autoFocus && inputRef.current) {
+    if (focusOnMount && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [autoFocus]);
+  }, [focusOnMount]);
 
   const print = useCallback((text: string, type: TerminalLineType = 'output') => {
     setLines((prev) => [

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { act, screen, fireEvent, render } from '../../../test/render';
+import i18n from '@/i18n';
+import { lightTheme as theme } from '@/styles/theme';
+import { act, screen, fireEvent, render } from '@/test/render';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import i18n from '../../../i18n';
-import { lightTheme as theme } from '../../../styles/theme';
 
 describe('LanguageSwitcher', () => {
   beforeEach(async () => {
@@ -38,7 +38,7 @@ describe('LanguageSwitcher', () => {
 
     const [enButton, esButton] = Array.from(container.querySelectorAll('button'));
 
-    // jsdom normaliza `transparent` a `rgba(0, 0, 0, 0)`.
+    // jsdom normalizes `transparent` to `rgba(0, 0, 0, 0)`.
     const transparent = 'rgba(0, 0, 0, 0)';
 
     expect(enButton).toHaveStyle({ backgroundColor: theme.colors.accent });

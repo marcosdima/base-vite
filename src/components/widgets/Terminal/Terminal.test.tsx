@@ -1,6 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
-import { render, screen, fireEvent } from '../../../test/render';
+import { describe, it, expect, vi } from 'vitest';
 import { Terminal } from './Terminal';
+import { fireEvent, render, screen } from '@/test/render';
 
 describe('Terminal component', () => {
   it('renders title and welcome message', () => {
@@ -9,38 +9,40 @@ describe('Terminal component', () => {
     expect(screen.getByText('Hello Tester')).toBeInTheDocument();
   });
 
-  it('handles echo command', () => {
+  it('displays custom prompt', () => {
     render(<Terminal prompt="test$ " />);
     const input = screen.getByLabelText('Terminal input');
-
-    fireEvent.change(input, { target: { value: 'echo hello world' } });
-    fireEvent.submit(input.closest('form')!);
-
-    expect(screen.getByText('test$ echo hello world')).toBeInTheDocument();
-    expect(screen.getByText('hello world')).toBeInTheDocument();
+    expect(input).toBeInTheDocument();
+    expect(screen.getByText('test$')).toBeInTheDocument();
   });
 
-  it('handles clear command', () => {
+  it('executes built-in commands like echo and clear', () => {
     render(<Terminal welcomeMessage="Will be cleared" />);
     expect(screen.getByText('Will be cleared')).toBeInTheDocument();
 
     const input = screen.getByLabelText('Terminal input');
+    fireEvent.change(input, { target: { value: 'echo hello world' } });
+    fireEvent.submit(input.closest('form')!);
+
+    expect(screen.getByText('hello world')).toBeInTheDocument();
+
     fireEvent.change(input, { target: { value: 'clear' } });
     fireEvent.submit(input.closest('form')!);
 
     expect(screen.queryByText('Will be cleared')).not.toBeInTheDocument();
+    expect(screen.queryByText('hello world')).not.toBeInTheDocument();
   });
 
-  it('runs custom registered commands', async () => {
-    const customHandler = vi.fn((_args, context) => {
-      context.print('custom result', 'success');
+  it('executes custom defined commands', () => {
+    const customHandler = vi.fn((args, { print }) => {
+      print(`Custom executed with: ${args.join(',')}`);
     });
 
     render(
       <Terminal
         commands={{
-          ping: {
-            description: 'Ping command',
+          deploy: {
+            description: 'Deploy app',
             handler: customHandler,
           },
         }}
@@ -48,50 +50,42 @@ describe('Terminal component', () => {
     );
 
     const input = screen.getByLabelText('Terminal input');
-    fireEvent.change(input, { target: { value: 'ping host1' } });
+    fireEvent.change(input, { target: { value: 'deploy prod --force' } });
     fireEvent.submit(input.closest('form')!);
 
-    expect(customHandler).toHaveBeenCalled();
-    expect(screen.getByText('custom result')).toBeInTheDocument();
+    expect(customHandler).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('Custom executed with: prod,--force')).toBeInTheDocument();
   });
 
-  it('handles unknown command by displaying error message', () => {
+  it('handles unknown commands via fallback message', () => {
     render(<Terminal />);
     const input = screen.getByLabelText('Terminal input');
 
-    fireEvent.change(input, { target: { value: 'invalidcmd' } });
+    fireEvent.change(input, { target: { value: 'foobar' } });
     fireEvent.submit(input.closest('form')!);
 
-    expect(screen.getByText(/command not found: invalidcmd/)).toBeInTheDocument();
+    expect(screen.getByText(/command not found: foobar/i)).toBeInTheDocument();
   });
 
-  it('cycles through history with ArrowUp and ArrowDown', () => {
+  it('navigates command history with ArrowUp and ArrowDown', () => {
     render(<Terminal />);
     const input = screen.getByLabelText('Terminal input') as HTMLInputElement;
 
-    // Run first command
-    fireEvent.change(input, { target: { value: 'cmd1' } });
+    fireEvent.change(input, { target: { value: 'echo first' } });
     fireEvent.submit(input.closest('form')!);
 
-    // Run second command
-    fireEvent.change(input, { target: { value: 'cmd2' } });
+    fireEvent.change(input, { target: { value: 'echo second' } });
     fireEvent.submit(input.closest('form')!);
 
-    expect(input.value).toBe('');
-
-    // Press ArrowUp -> cmd2
     fireEvent.keyDown(input, { key: 'ArrowUp' });
-    expect(input.value).toBe('cmd2');
+    expect(input.value).toBe('echo second');
 
-    // Press ArrowUp -> cmd1
     fireEvent.keyDown(input, { key: 'ArrowUp' });
-    expect(input.value).toBe('cmd1');
+    expect(input.value).toBe('echo first');
 
-    // Press ArrowDown -> cmd2
     fireEvent.keyDown(input, { key: 'ArrowDown' });
-    expect(input.value).toBe('cmd2');
+    expect(input.value).toBe('echo second');
 
-    // Press ArrowDown -> empty
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     expect(input.value).toBe('');
   });

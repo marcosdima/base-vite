@@ -46,7 +46,7 @@ export interface TerminalProps {
     clear: () => void,
   ) => void | Promise<void>;
   /** If true, the terminal input is focused on mount */
-  autoFocus?: boolean;
+  focusOnMount?: boolean;
   /** Class name for the outer container */
   className?: string;
 }
