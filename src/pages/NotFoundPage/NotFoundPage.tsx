@@ -1,12 +1,5 @@
-import {
-  BackLink,
-  Code,
-  Content,
-  Description,
-  ErrorTitle,
-  Page,
-} from '../styles/pages/notFoundPage.styles';
 import { useTranslation } from 'react-i18next';
+import { BackLink, Code, Content, Description, ErrorTitle, Page } from './NotFoundPage.styles';
 
 export function NotFoundPage() {
   const { t } = useTranslation();

@@ -1,6 +1,6 @@
-import styled, { type DefaultTheme } from 'styled-components';
 import { Link } from 'react-router-dom';
-import { Eyebrow, Paragraph, SectionTitle } from '../typography';
+import styled, { type DefaultTheme } from 'styled-components';
+import { Eyebrow, Paragraph, SectionTitle } from '@/styles/typography';
 
 export const Page = styled.section`
   display: flex;
@@ -33,7 +33,7 @@ export const BackLink = styled(Link)`
   padding: 12px 24px;
   border-radius: ${({ theme }: { theme: DefaultTheme }) => theme.radii.small};
   background: ${({ theme }: { theme: DefaultTheme }) => theme.colors.accent};
-  color: #fff;
+  color: ${({ theme }: { theme: DefaultTheme }) => theme.colors.accentText};
   font-weight: 600;
   font-size: 0.95rem;
   transition: background ${({ theme }: { theme: DefaultTheme }) => theme.transitions.default};

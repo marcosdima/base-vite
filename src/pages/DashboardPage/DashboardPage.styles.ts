@@ -1,5 +1,5 @@
 import styled, { type DefaultTheme } from 'styled-components';
-import { Caption, Paragraph, SectionTitle } from '../typography';
+import { Caption, Paragraph, SectionTitle } from '@/styles/typography';
 
 export const Page = styled.section`
   display: flex;
@@ -9,7 +9,7 @@ export const Page = styled.section`
   padding: 40px 0;
 `;
 
-export const Card = styled.div`
+export const DashboardCard = styled.div`
   width: min(100%, 540px);
   padding: 32px;
   border: 1px solid ${({ theme }: { theme: DefaultTheme }) => theme.colors.border};

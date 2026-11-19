@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen } from '../test/render';
+import i18n from '@/i18n';
+import { render, screen } from '@/test/render';
 import { HomePage } from './HomePage';
-import i18n from '../i18n';
 
 describe('HomePage', () => {
   beforeEach(async () => {

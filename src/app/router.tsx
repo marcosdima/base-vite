@@ -1,20 +1,27 @@
 import { createBrowserRouter } from 'react-router-dom';
-import { AppShell } from '../components/layout/AppShell';
-import { RequireAuth } from '../components/auth/RequireAuth';
-import { DashboardPage } from '../pages/DashboardPage';
-import { HomePage } from '../pages/HomePage';
-import { LoginPage } from '../pages/LoginPage';
-import { NotFoundPage } from '../pages/NotFoundPage';
-import { SignInPage } from '../pages/SignInPage';
+import { RequireAuth } from '@/components/auth/RequireAuth';
+import { AppShell } from '@/components/layout/AppShell';
+import { RouteErrorFallback } from '@/components/layout/ErrorBoundary';
+import { DashboardPage } from '@/pages/DashboardPage';
+import { HomePage } from '@/pages/HomePage';
+import { LoginPage } from '@/pages/LoginPage';
+import { NotFoundPage } from '@/pages/NotFoundPage';
+import { PlaygroundPage } from '@/pages/PlaygroundPage';
+import { SignInPage } from '@/pages/SignInPage';
 
 export const router = createBrowserRouter([
   {
     path: '/',
     element: <AppShell />,
+    errorElement: <RouteErrorFallback />,
     children: [
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: 'playground',
+        element: <PlaygroundPage />,
       },
       {
         path: 'login',

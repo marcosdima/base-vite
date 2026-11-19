@@ -1,20 +1,21 @@
 import { useState } from 'react';
-import { FiArrowRight, FiLoader, FiLock, FiUser } from 'react-icons/fi';
+import { FiArrowRight, FiLock, FiUser } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
-import { useDispatch } from 'react-redux';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { setCredentials } from '../../features/auth/authSlice';
-import { useLoginMutation, useSignInMutation } from '../../services/authApi';
+import { useAppDispatch } from '@/app/hooks';
+import { Button, Input } from '@/components/ui';
+import { setCredentials } from '@/features/auth/authSlice';
+import { useLoginMutation, useSignInMutation } from '@/services/authApi';
 import {
-  Card,
+  AuthCard,
+  CardEyebrow,
+  CardSubtitle,
+  CardTitle,
   Feedback,
-  FieldInput,
-  FieldLabel,
   Footer,
   Form,
-  Spin,
-  SubmitButton,
-} from '../../styles/components/authFormCard.styles';
+  Header,
+} from './AuthFormCard.styles';
 
 interface InitialFormState {
   username: string;
@@ -40,14 +41,14 @@ function getErrorMessage(error: unknown, fallbackMessage: string): string {
   );
 }
 
-interface AuthFormCardProps {
+export interface AuthFormCardProps {
   mode: 'login' | 'signin';
   notice?: string;
 }
 
 export function AuthFormCard({ mode, notice = '' }: AuthFormCardProps) {
   const { t } = useTranslation();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const [formState, setFormState] = useState<InitialFormState>(initialFormState);
@@ -60,7 +61,7 @@ export function AuthFormCard({ mode, notice = '' }: AuthFormCardProps) {
 
   const isSignIn = mode === 'signin';
   const isLoading = loginResult.isLoading || signInResult.isLoading;
-  const redirectTo = location.state?.redirectTo ?? '/dashboard';
+  const redirectTo = (location.state as { redirectTo?: string } | null)?.redirectTo ?? '/dashboard';
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = event.target;
@@ -122,79 +123,67 @@ export function AuthFormCard({ mode, notice = '' }: AuthFormCardProps) {
   const alternateAction = isSignIn ? t('nav.login') : t('nav.signIn');
 
   return (
-    <Card
+    <AuthCard
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, ease: 'easeOut' }}
     >
+      <Header>
+        <CardEyebrow>{t('auth.badge')}</CardEyebrow>
+        <CardTitle>{isSignIn ? t('auth.signInTitle') : t('auth.loginTitle')}</CardTitle>
+        <CardSubtitle>{isSignIn ? t('auth.signInSubtitle') : t('auth.loginSubtitle')}</CardSubtitle>
+      </Header>
+
       <Form onSubmit={handleSubmit}>
-        <FieldLabel>
-          <span>{t('auth.fields.username')}</span>
-          <FieldInput>
-            <FiUser />
-            <input
-              type="text"
-              name="username"
-              placeholder={t('auth.placeholders.username')}
-              value={formState.username}
-              onChange={handleChange}
-              autoComplete="username"
-              required
-            />
-          </FieldInput>
-        </FieldLabel>
+        <Input
+          type="text"
+          name="username"
+          label={t('auth.fields.username')}
+          placeholder={t('auth.placeholders.username')}
+          leftIcon={<FiUser />}
+          value={formState.username}
+          onChange={handleChange}
+          autoComplete="username"
+          required
+        />
+
+        <Input
+          type="password"
+          name="password"
+          label={t('auth.fields.password')}
+          placeholder={t('auth.placeholders.password')}
+          leftIcon={<FiLock />}
+          value={formState.password}
+          onChange={handleChange}
+          autoComplete={isSignIn ? 'new-password' : 'current-password'}
+          required
+        />
 
         {isSignIn ? (
-          <FieldLabel>
-            <span>{t('auth.fields.confirmPassword')}</span>
-            <FieldInput>
-              <FiLock />
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder={t('auth.placeholders.confirmPassword')}
-                value={formState.confirmPassword}
-                onChange={handleChange}
-                autoComplete="new-password"
-                required
-              />
-            </FieldInput>
-          </FieldLabel>
+          <Input
+            type="password"
+            name="confirmPassword"
+            label={t('auth.fields.confirmPassword')}
+            placeholder={t('auth.placeholders.confirmPassword')}
+            leftIcon={<FiLock />}
+            value={formState.confirmPassword}
+            onChange={handleChange}
+            autoComplete="new-password"
+            required
+          />
         ) : null}
-
-        <FieldLabel>
-          <span>{t('auth.fields.password')}</span>
-          <FieldInput>
-            <FiLock />
-            <input
-              type="password"
-              name="password"
-              placeholder={t('auth.placeholders.password')}
-              value={formState.password}
-              onChange={handleChange}
-              autoComplete={isSignIn ? 'new-password' : 'current-password'}
-              required
-            />
-          </FieldInput>
-        </FieldLabel>
 
         {feedbackMessage ? <Feedback $type={feedbackType}>{feedbackMessage}</Feedback> : null}
 
-        <SubmitButton type="submit" disabled={isLoading}>
-          {isLoading ? (
-            <Spin>
-              <FiLoader />
-            </Spin>
-          ) : (
-            <FiArrowRight />
-          )}
+        <Button type="submit" size="lg" fullWidth isLoading={isLoading}>
+          {!isLoading ? <FiArrowRight /> : null}
           <span>{isSignIn ? t('auth.actions.createAccount') : t('auth.actions.login')}</span>
-        </SubmitButton>
+        </Button>
       </Form>
 
       <Footer>
         {alternateLabel} <Link to={alternatePath}>{alternateAction}</Link>
       </Footer>
-    </Card>
+    </AuthCard>
   );
 }

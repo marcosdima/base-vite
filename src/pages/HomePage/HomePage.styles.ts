@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { Paragraph, SectionTitle } from '../typography';
+import { Paragraph, SectionTitle } from '@/styles/typography';
 
 export const Page = styled.section`
   display: flex;

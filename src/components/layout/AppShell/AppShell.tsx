@@ -1,19 +1,11 @@
-import { FiGrid, FiHome, FiLogIn, FiLogOut, FiUserPlus } from 'react-icons/fi';
+import { FiGrid, FiHome, FiLayers, FiLogIn, FiLogOut, FiUserPlus } from 'react-icons/fi';
 import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from 'react-redux';
 import { Outlet } from 'react-router-dom';
-import { logout, selectAuthUser, selectIsAuthenticated } from '../../features/auth/authSlice';
-import {
-  Brand,
-  Controls,
-  GhostButton,
-  Nav,
-  Shell,
-  StyledNavLink,
-  Topbar,
-} from '../../styles/components/appShell.styles';
-import { LanguageSwitcher } from '../features/switches/LanguageSwitcher';
-import { ThemeChanger } from '../features/switches/ThemeChanger';
+import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { LanguageSwitcher, ThemeChanger } from '@/components/switches';
+import { APP_CONFIG } from '@/config/app.config';
+import { logout, selectAuthUser, selectIsAuthenticated } from '@/features/auth/authSlice';
+import { Brand, Controls, GhostButton, Nav, Shell, StyledNavLink, Topbar } from './AppShell.styles';
 
 interface NavLinkItem {
   to: string;
@@ -23,13 +15,14 @@ interface NavLinkItem {
 
 export function AppShell() {
   const { t } = useTranslation();
-  const dispatch = useDispatch();
-  const isAuthenticated = useSelector(selectIsAuthenticated);
-  const authUser = useSelector(selectAuthUser);
+  const dispatch = useAppDispatch();
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const authUser = useAppSelector(selectAuthUser);
 
-  // These links stay declarative so adding pages later is low friction.
+  // Declarative link list keeps adding new routes low friction.
   const primaryLinks: NavLinkItem[] = [
     { to: '/', label: t('nav.home'), icon: <FiHome /> },
+    { to: '/playground', label: t('nav.playground'), icon: <FiLayers /> },
     { to: '/dashboard', label: t('nav.dashboard'), icon: <FiGrid /> },
   ];
 
@@ -47,7 +40,7 @@ export function AppShell() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: 'easeOut' }}
       >
-        <Brand>{t('layout.brand')}</Brand>
+        <Brand>{APP_CONFIG.name}</Brand>
 
         <Controls>
           <Nav aria-label={t('layout.primaryNavigation')}>
