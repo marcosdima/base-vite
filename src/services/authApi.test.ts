@@ -1,14 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { configureStore } from '@reduxjs/toolkit';
-import { httpClient } from './httpClient';
+import { createAppStore } from '@/app/store';
 import { authApi } from './authApi';
-import { authReducer } from '../features/auth/authSlice';
+import { httpClient } from './httpClient';
 
 vi.mock('./httpClient', () => ({
   httpClient: vi.fn(),
 }));
 
-vi.mock('../features/auth/authStorage', () => ({
+vi.mock('@/features/auth/authStorage', () => ({
   getStoredToken: vi.fn(() => null),
   loadAuthState: vi.fn(() => ({ token: null, user: null })),
   saveAuthState: vi.fn(),
@@ -18,16 +17,6 @@ vi.mock('../features/auth/authStorage', () => ({
 const mockedHttpClient = vi.mocked(httpClient);
 
 const user = { id: '1', username: 'jane', name: 'Jane', email: 'jane@test.com' };
-
-function createStore() {
-  return configureStore({
-    reducer: {
-      auth: authReducer,
-      [authApi.reducerPath]: authApi.reducer,
-    },
-    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(authApi.middleware),
-  });
-}
 
 describe('authApi', () => {
   beforeEach(() => {
@@ -39,7 +28,7 @@ describe('authApi', () => {
       data: { token: 'abc-123', user },
     } as never);
 
-    const store = createStore();
+    const store = createAppStore();
     const result = await store.dispatch(
       authApi.endpoints.login.initiate({ username: 'jane', password: 'secret' }),
     );
@@ -52,7 +41,7 @@ describe('authApi', () => {
       data: { accessToken: 'xyz-789', username: 'jane', name: 'Jane', email: 'jane@test.com' },
     } as never);
 
-    const store = createStore();
+    const store = createAppStore();
     const result = await store.dispatch(
       authApi.endpoints.login.initiate({ username: 'jane', password: 'secret' }),
     );
@@ -68,7 +57,7 @@ describe('authApi', () => {
       data: { data: { user } },
     } as never);
 
-    const store = createStore();
+    const store = createAppStore();
     const result = await store.dispatch(authApi.endpoints.getProfile.initiate());
 
     expect(result.data).toEqual({ user });
@@ -79,11 +68,26 @@ describe('authApi', () => {
       response: { status: 400, data: { message: 'Invalid credentials' } },
     } as never);
 
-    const store = createStore();
+    const store = createAppStore();
     const result = await store.dispatch(
       authApi.endpoints.login.initiate({ username: 'jane', password: 'wrong' }),
     );
 
     expect(result.error).toEqual({ status: 400, data: { message: 'Invalid credentials' } });
+  });
+
+  it('should clear auth session when receiving a 401 response', async () => {
+    mockedHttpClient.mockRejectedValue({
+      response: { status: 401, data: { message: 'Unauthorized' } },
+    } as never);
+
+    const store = createAppStore({
+      auth: { token: 'expired-token', user, isAuthenticated: true },
+    });
+
+    await store.dispatch(authApi.endpoints.getProfile.initiate());
+
+    expect(store.getState().auth.isAuthenticated).toBe(false);
+    expect(store.getState().auth.token).toBeNull();
   });
 });

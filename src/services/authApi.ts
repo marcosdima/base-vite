@@ -1,39 +1,25 @@
-import { createApi } from '@reduxjs/toolkit/query/react';
-import type { BaseQueryApi } from '@reduxjs/toolkit/query';
-import { logout, setUser } from '../features/auth/authSlice';
-import { httpClient } from './httpClient';
+import { setUser } from '@/features/auth/authSlice';
+import { baseApi, isRecord } from './baseApi';
 
-interface UserPayload {
+export interface UserPayload {
   id: string | null;
   username: string | null;
   name: string | null;
   email: string | null;
 }
 
-interface AuthResponse {
+export interface AuthResponse {
   token: string | null;
   user: UserPayload | null;
 }
 
-interface ProfileResponse {
+export interface ProfileResponse {
   user: UserPayload | null;
 }
 
-/** Respuesta cruda del backend: la forma todavía no está garantizada. */
-type UnknownPayload = Record<string, unknown>;
-
-function isRecord(value: unknown): value is UnknownPayload {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function readString(value: unknown): string | null {
-  return typeof value === 'string' ? value : null;
-}
-
 /**
- * Lee un identificador o texto que el backend podría enviar como número.
- * Se convierte a `string` para respetar el contrato `string | null` sin
- * descartar el valor original.
+ * Reads an identifier or text field that a backend might return as a number,
+ * normalizing it to `string | null` without dropping numeric IDs.
  */
 function readText(value: unknown): string | null {
   if (typeof value === 'string') {
@@ -45,10 +31,6 @@ function readText(value: unknown): string | null {
   }
 
   return null;
-}
-
-function readNumber(value: unknown): number | null {
-  return typeof value === 'number' ? value : null;
 }
 
 function normalizeUserPayload(payload: unknown): UserPayload | null {
@@ -114,46 +96,7 @@ function normalizeProfileResponse(response: unknown): ProfileResponse {
   };
 }
 
-interface BaseQueryArgs {
-  url: string;
-  method?: string;
-  data?: unknown;
-  params?: unknown;
-}
-
-const axiosBaseQuery = () => async (args: BaseQueryArgs, api: BaseQueryApi) => {
-  try {
-    const response = await httpClient({
-      url: args.url,
-      method: args.method ?? 'GET',
-      data: args.data,
-      params: args.params,
-    });
-
-    return { data: response.data };
-  } catch (error: unknown) {
-    const details = isRecord(error) ? error : {};
-    const responseDetails = isRecord(details.response) ? details.response : {};
-    const status = readNumber(responseDetails.status) ?? 500;
-    const responseData = responseDetails.data ?? { message: readString(details.message) };
-
-    if (status === 401) {
-      api.dispatch(logout());
-    }
-
-    return {
-      error: {
-        status,
-        data: responseData,
-      },
-    };
-  }
-};
-
-export const authApi = createApi({
-  reducerPath: 'authApi',
-  baseQuery: axiosBaseQuery(),
-  tagTypes: ['Auth'],
+export const authApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<AuthResponse, { username: string; password: string }>({
       query: (credentials) => ({
@@ -192,7 +135,7 @@ export const authApi = createApi({
             dispatch(setUser(data.user));
           }
         } catch {
-          // Empty because the UI already handles query errors.
+          // Query errors are handled by the UI layer.
         }
       },
     }),
@@ -200,5 +143,3 @@ export const authApi = createApi({
 });
 
 export const { useGetProfileQuery, useLoginMutation, useSignInMutation } = authApi;
-
-export type { AuthResponse, ProfileResponse, UserPayload };

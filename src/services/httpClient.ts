@@ -1,6 +1,6 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import { getStoredToken } from '../features/auth/authStorage';
-import { API_BASE_URL } from '../utils/config';
+import axios, { type AxiosInstance, type InternalAxiosRequestConfig } from 'axios';
+import { getStoredToken } from '@/features/auth/authStorage';
+import { API_BASE_URL } from '@/utils/config';
 
 export const httpClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
