@@ -1,14 +1,15 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { ThemeProvider } from 'styled-components';
+import { APP_CONFIG } from '@/config/app.config';
 import { GlobalStyles } from './GlobalStyles';
 import { darkTheme, lightTheme, type Theme } from './theme';
 
-const STORAGE_KEY = 'starter-forge-theme';
+export const THEME_STORAGE_KEY = `${APP_CONFIG.storagePrefix}-theme`;
 
 function getInitialTheme(): Theme {
   if (typeof window === 'undefined') return lightTheme;
 
-  const stored = localStorage.getItem(STORAGE_KEY);
+  const stored = localStorage.getItem(THEME_STORAGE_KEY);
   if (stored === 'dark') return darkTheme;
   if (stored === 'light') return lightTheme;
 
@@ -40,7 +41,7 @@ export function AppThemeProvider({ children }: AppThemeProviderProps) {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
     function handleChange(event: MediaQueryListEvent) {
-      if (!localStorage.getItem(STORAGE_KEY)) {
+      if (!localStorage.getItem(THEME_STORAGE_KEY)) {
         setTheme(event.matches ? darkTheme : lightTheme);
       }
     }
@@ -55,7 +56,7 @@ export function AppThemeProvider({ children }: AppThemeProviderProps) {
   function toggleTheme() {
     setTheme((current) => {
       const next: Theme = current.name === 'dark' ? lightTheme : darkTheme;
-      localStorage.setItem(STORAGE_KEY, next.name);
+      localStorage.setItem(THEME_STORAGE_KEY, next.name);
       return next;
     });
   }

@@ -75,7 +75,7 @@ export default tseslint.config(
     plugins,
     rules: {
       ...sharedRules,
-      // TypeScript ya valida las props, los tipos y las variables sin uso.
+      // TypeScript already validates props, types, and unused variables.
       'react/prop-types': 'off',
       'no-unused-vars': 'off',
       'no-undef': 'off',
@@ -83,7 +83,7 @@ export default tseslint.config(
         'warn',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
-      // Permite `interface DefaultTheme extends Theme {}` para augmentar styled-components.
+      // Allow `interface DefaultTheme extends Theme {}` for styled-components theme augmentation.
       '@typescript-eslint/no-empty-object-type': [
         'error',
         { allowInterfaces: 'with-single-extends' },

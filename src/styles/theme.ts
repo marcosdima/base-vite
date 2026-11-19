@@ -11,12 +11,18 @@ export interface ThemeColors {
   borderStrong: string;
   accent: string;
   accentHover: string;
+  accentText: string;
   accentSoft: string;
   accentBorder: string;
+  focusRing: string;
   successBackground: string;
   successText: string;
+  warningBackground: string;
+  warningText: string;
   errorBackground: string;
   errorText: string;
+  danger: string;
+  dangerHover: string;
   neutralBackground: string;
   neutralText: string;
 }
@@ -39,6 +45,29 @@ export interface ThemeSpacing {
   compact: string;
 }
 
+export interface ThemeFontSizes {
+  xs: string;
+  sm: string;
+  md: string;
+  lg: string;
+  xl: string;
+  xxl: string;
+}
+
+export interface ThemeBreakpoints {
+  sm: string;
+  md: string;
+  lg: string;
+}
+
+export interface ThemeZIndex {
+  base: number;
+  sticky: number;
+  overlay: number;
+  modal: number;
+  toast: number;
+}
+
 export interface ThemeTransitions {
   default: string;
 }
@@ -51,43 +80,28 @@ export interface ThemeFonts {
 export interface Theme {
   name: 'light' | 'dark';
   fonts: ThemeFonts;
+  fontSizes: ThemeFontSizes;
   colors: ThemeColors;
   shadows: ThemeShadows;
   radii: ThemeRadii;
   spacing: ThemeSpacing;
+  breakpoints: ThemeBreakpoints;
+  zIndex: ThemeZIndex;
   transitions: ThemeTransitions;
 }
 
-export const lightTheme: Theme = {
-  name: 'light',
+const sharedTokens = {
   fonts: {
     body: "'Space Grotesk', 'Segoe UI', sans-serif",
     mono: "'Fira Code', 'JetBrains Mono', 'Consolas', 'Courier New', monospace",
   },
-  colors: {
-    text: '#1f2937',
-    textStrong: '#111827',
-    textMuted: '#6b7280',
-    textSubtle: '#9ca3af',
-    background: '#f4f7fb',
-    surface: '#ffffff',
-    surfaceMuted: '#f8fafc',
-    surfaceOverlay: 'rgba(255, 255, 255, 0.84)',
-    border: '#dbe4f0',
-    borderStrong: '#cbd5e1',
-    accent: '#2563eb',
-    accentHover: '#1d4ed8',
-    accentSoft: '#dbeafe',
-    accentBorder: '#bfdbfe',
-    successBackground: '#ecfdf5',
-    successText: '#047857',
-    errorBackground: '#fef2f2',
-    errorText: '#b91c1c',
-    neutralBackground: '#eef2f7',
-    neutralText: '#475569',
-  },
-  shadows: {
-    card: '0 18px 45px rgba(15, 23, 42, 0.08)',
+  fontSizes: {
+    xs: '0.75rem',
+    sm: '0.875rem',
+    md: '1rem',
+    lg: '1.125rem',
+    xl: '1.5rem',
+    xxl: '2rem',
   },
   radii: {
     small: '12px',
@@ -101,14 +115,62 @@ export const lightTheme: Theme = {
     component: '16px',
     compact: '8px',
   },
+  breakpoints: {
+    sm: '640px',
+    md: '768px',
+    lg: '1024px',
+  },
+  zIndex: {
+    base: 1,
+    sticky: 20,
+    overlay: 40,
+    modal: 60,
+    toast: 80,
+  },
   transitions: {
     default: '0.15s ease',
   },
 };
 
+export const lightTheme: Theme = {
+  name: 'light',
+  ...sharedTokens,
+  colors: {
+    text: '#1f2937',
+    textStrong: '#111827',
+    textMuted: '#6b7280',
+    textSubtle: '#9ca3af',
+    background: '#f4f7fb',
+    surface: '#ffffff',
+    surfaceMuted: '#f8fafc',
+    surfaceOverlay: 'rgba(255, 255, 255, 0.84)',
+    border: '#dbe4f0',
+    borderStrong: '#cbd5e1',
+    accent: '#2563eb',
+    accentHover: '#1d4ed8',
+    accentText: '#ffffff',
+    accentSoft: '#dbeafe',
+    accentBorder: '#bfdbfe',
+    focusRing: 'rgba(37, 99, 235, 0.25)',
+    successBackground: '#ecfdf5',
+    successText: '#047857',
+    warningBackground: '#fffbeb',
+    warningText: '#b45309',
+    errorBackground: '#fef2f2',
+    errorText: '#b91c1c',
+    danger: '#dc2626',
+    dangerHover: '#b91c1c',
+    neutralBackground: '#eef2f7',
+    neutralText: '#475569',
+  },
+  shadows: {
+    card: '0 18px 45px rgba(15, 23, 42, 0.08)',
+  },
+};
+
 export const darkTheme: Theme = {
-  ...lightTheme,
   name: 'dark',
+  ...sharedTokens,
   colors: {
     text: '#dbe5f3',
     textStrong: '#f8fafc',
@@ -122,12 +184,18 @@ export const darkTheme: Theme = {
     borderStrong: '#31415f',
     accent: '#60a5fa',
     accentHover: '#93c5fd',
+    accentText: '#08111f',
     accentSoft: 'rgba(96, 165, 250, 0.16)',
     accentBorder: 'rgba(147, 197, 253, 0.32)',
+    focusRing: 'rgba(96, 165, 250, 0.32)',
     successBackground: 'rgba(6, 95, 70, 0.24)',
     successText: '#6ee7b7',
+    warningBackground: 'rgba(180, 83, 9, 0.24)',
+    warningText: '#fcd34d',
     errorBackground: 'rgba(185, 28, 28, 0.22)',
     errorText: '#fca5a5',
+    danger: '#ef4444',
+    dangerHover: '#dc2626',
     neutralBackground: '#162133',
     neutralText: '#cbd5e1',
   },

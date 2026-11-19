@@ -1,4 +1,6 @@
-export const AUTH_STORAGE_KEY = 'starter-forge-auth';
+import { APP_CONFIG } from '@/config/app.config';
+
+export const AUTH_STORAGE_KEY = `${APP_CONFIG.storagePrefix}-auth`;
 
 export interface AuthState {
   token: string | null;

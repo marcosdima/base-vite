@@ -10,64 +10,32 @@ export const resources: Resources = {
     translation: {
       nav: {
         home: 'Home',
+        playground: 'Playground',
         dashboard: 'Dashboard',
         login: 'Log in',
         signIn: 'Sign in',
       },
       layout: {
-        brand: 'App',
-        ready: 'Ready to ship',
         primaryNavigation: 'Primary navigation',
         logout: 'Log out',
         languageSwitcher: 'Language switcher',
+        toggleTheme: 'Toggle theme',
       },
       notFound: {
         title: 'Page not found',
         description: 'The route you requested does not exist in this starter.',
         action: 'Go back home',
       },
+      errorBoundary: {
+        badge: 'Unexpected error',
+        title: 'Something went wrong',
+        description: 'An unexpected error interrupted rendering. You can retry or go back home.',
+        retry: 'Try again',
+        home: 'Go back home',
+      },
       home: {
-        badge: 'Reusable Vite baseline',
-        title: 'Start new React projects without rebuilding the same foundation every time.',
-        description:
-          'This starter already includes routing, Redux Toolkit, RTK Query, i18n, motion animations, icons, and auth-ready screens.',
-        primaryAction: 'Create account',
-        secondaryAction: 'Open login',
-        stackTitle: 'Included stack',
-        stackItems: [
-          'React 19',
-          'React Router v7',
-          'Redux Toolkit',
-          'RTK Query',
-          'i18next',
-          'Motion',
-          'react-icons',
-          'Axios',
-        ],
-        featureCards: [
-          {
-            title: 'Application structure',
-            description:
-              'App shell, pages, features, services, and routing are already separated to scale cleanly.',
-          },
-          {
-            title: 'REST API workflow',
-            description:
-              'RTK Query mutations and queries are connected to an Axios client with auth header support.',
-          },
-          {
-            title: 'Bilingual UI',
-            description:
-              'English and Spanish strings are configured and the language toggle is already mounted.',
-          },
-          {
-            title: 'Auth baseline',
-            description:
-              'Log in, sign up, session persistence, and protected routes are ready for your backend.',
-          },
-        ],
-        simpleTitle: 'Home',
-        simpleDescription: 'Start building here.',
+        title: 'Home',
+        description: 'Start building here.',
       },
       auth: {
         badge: 'Authentication template',
@@ -101,19 +69,61 @@ export const resources: Resources = {
       },
       dashboard: {
         badge: 'Protected route',
-        title: 'Dashboard connected to the store and API layer',
         greeting: 'Hi, {{username}}!',
         greetingFallback: 'there',
-        baseDescription: 'This dashboard is the base for testing and mounting the next features.',
+        description:
+          'Use this page as a starting point for private modules that need authenticated data.',
+        name: 'Current user',
+        fallbackUser: 'Authenticated user',
         sessionTokenLabel: 'Session token',
         noToken: 'No token',
-        showcaseTitle: 'Features',
-        showcase: {
-          theme: 'Theme',
-          poll: 'Poll',
-          groupInput: 'Grouped input',
-          terminal: 'Interactive CLI terminal (Reusable UI component)',
+        apiCardTitle: 'REST base URL',
+        profileRequestFailed: 'Failed to fetch profile. Check your endpoint or token.',
+        refresh: 'Refresh profile',
+        refreshing: 'Refreshing...',
+      },
+      playground: {
+        badge: 'Visual Testing',
+        title: 'Visual Testing Playground',
+        subtitle:
+          'Inspect theme tokens, core UI primitives, and general-purpose widgets in both light and dark modes.',
+        sections: {
+          tokens: 'Design Tokens',
+          primitives: 'UI Primitives',
+          widgets: 'General-Purpose Widgets',
         },
+        primitives: {
+          buttons: 'Button variants and states',
+          primaryAction: 'Primary',
+          secondaryAction: 'Secondary',
+          ghostAction: 'Ghost',
+          dangerAction: 'Danger',
+          loadingAction: 'Loading',
+          disabledAction: 'Disabled',
+          inputs: 'Input states',
+          inputLabel: 'Search query',
+          inputPlaceholder: 'Type to test focus and value...',
+          inputHint: 'Supports icons, hints, and accessible validation messages.',
+          errorInputLabel: 'Field with error',
+          errorInputMessage: 'Please provide a valid value.',
+          badgesAndCards: 'Badges and nested cards',
+          elevatedCardNote: 'Elevated card surface with theme border and shadow.',
+        },
+        spotlight: {
+          primitivesTitle: 'Core UI Primitives',
+          primitivesDescription: 'Token-driven Button, Input, Card, Badge, and Stack components.',
+          terminalTitle: 'Interactive Terminal',
+          terminalDescription: 'Extensible CLI widget with command history and custom handlers.',
+          boardTitle: 'Protected Dashboard',
+          boardDescription: 'Authenticated route connected to Redux Toolkit and RTK Query.',
+          cta: 'Open section',
+        },
+        widgets: {
+          poll: 'Poll widget',
+          groupInput: 'Grouped drag-and-drop input',
+        },
+      },
+      widgets: {
         pollExample: {
           question: 'Which feature should we build next?',
           optionA: 'Reports dashboard',
@@ -130,19 +140,6 @@ export const resources: Resources = {
           groupAAria: 'Group A name',
           groupBAria: 'Group B name',
         },
-        description:
-          'Use this page as a starting point for private modules that need authenticated data.',
-        name: 'Current user',
-        fallbackUser: 'Authenticated user',
-        apiCardTitle: 'REST base URL',
-        apiCardDescription:
-          'Change this value using VITE_API_URL to point the template to your backend.',
-        sessionCardTitle: 'Session token',
-        sessionCardDescription:
-          'The token is persisted in localStorage and attached automatically to every request.',
-        profileRequestFailed: 'Failed to fetch profile. Check your endpoint or token.',
-        refresh: 'Refresh profile',
-        refreshing: 'Refreshing...',
       },
     },
   },
@@ -150,63 +147,32 @@ export const resources: Resources = {
     translation: {
       nav: {
         home: 'Inicio',
+        playground: 'Playground',
         dashboard: 'Panel',
         login: 'Ingresar',
         signIn: 'Crear cuenta',
       },
       layout: {
-        brand: 'App',
-        ready: 'Listo para enviar',
         primaryNavigation: 'Navegación principal',
         logout: 'Cerrar sesión',
         languageSwitcher: 'Cambiar idioma',
+        toggleTheme: 'Cambiar tema',
       },
       notFound: {
         title: 'Página no encontrada',
         description: 'La ruta que solicitaste no existe en este starter.',
         action: 'Volver al inicio',
       },
+      errorBoundary: {
+        badge: 'Error inesperado',
+        title: 'Algo salió mal',
+        description: 'Ocurrió un error inesperado al renderizar. Podés reintentar o volver.',
+        retry: 'Reintentar',
+        home: 'Volver al inicio',
+      },
       home: {
-        badge: 'Base reutilizable de Vite',
-        title: 'Empezá nuevos proyectos React sin reconstruir la misma base cada vez.',
-        description:
-          'Este starter ya incluye routing, Redux Toolkit, RTK Query, i18n, animaciones de Motion, iconos y pantallas de auth listas.',
-        primaryAction: 'Crear cuenta',
-        secondaryAction: 'Abrir login',
-        stackTitle: 'Stack incluido',
-        stackItems: [
-          'React 19',
-          'React Router v7',
-          'Redux Toolkit',
-          'RTK Query',
-          'i18next',
-          'Motion',
-          'react-icons',
-          'Axios',
-        ],
-        featureCards: [
-          {
-            title: 'Estructura de aplicación',
-            description:
-              'App shell, páginas, features, servicios y routing ya están separados para escalar limpiamente.',
-          },
-          {
-            title: 'Flujo de API REST',
-            description:
-              'Las mutaciones y consultas de RTK Query están conectadas a un cliente Axios con soporte de headers de auth.',
-          },
-          {
-            title: 'UI bilingüe',
-            description: 'Inglés y español configurados, y el selector de idioma ya está montado.',
-          },
-          {
-            title: 'Base de autenticación',
-            description:
-              'Login, registro, persistencia de sesión y rutas protegidas listas para tu backend.',
-          },
-        ],
-        simpleTitle: 'Inicio',
-        simpleDescription: 'Empezá a construir desde acá.',
+        title: 'Inicio',
+        description: 'Empezá a construir desde acá.',
       },
       auth: {
         badge: 'Plantilla de autenticación',
@@ -242,22 +208,63 @@ export const resources: Resources = {
       },
       dashboard: {
         badge: 'Ruta protegida',
-        title: 'Panel conectado al store y a la capa de API',
         greeting: 'Hola, {{username}}!',
         greetingFallback: 'amigo',
-        baseDescription:
-          'Este dashboard es la base para probar e ir montando las próximas features.',
+        description:
+          'Usá esta página como punto de partida para módulos privados que necesiten datos autenticados.',
+        name: 'Usuario actual',
+        fallbackUser: 'Usuario autenticado',
         sessionTokenLabel: 'Token de sesión',
         noToken: 'Sin token',
-        showcaseTitle: 'Features',
-        showcase: {
-          theme: 'Tema',
-          poll: 'Encuesta',
-          groupInput: 'Input agrupado',
-          terminal: 'Terminal CLI interactivo (Componente UI reutilizable)',
+        apiCardTitle: 'URL base REST',
+        profileRequestFailed: 'Falló la consulta del perfil. Revisá tu endpoint o el token.',
+        refresh: 'Actualizar perfil',
+        refreshing: 'Actualizando...',
+      },
+      playground: {
+        badge: 'Testing visual',
+        title: 'Playground de Testing Visual',
+        subtitle:
+          'Inspeccioná tokens de diseño, primitivas UI y widgets de propósito general en modo claro y oscuro.',
+        sections: {
+          tokens: 'Tokens de diseño',
+          primitives: 'Primitivas UI',
+          widgets: 'Widgets de propósito general',
         },
+        primitives: {
+          buttons: 'Variantes y estados de Button',
+          primaryAction: 'Primario',
+          secondaryAction: 'Secundario',
+          ghostAction: 'Ghost',
+          dangerAction: 'Peligro',
+          loadingAction: 'Cargando',
+          disabledAction: 'Deshabilitado',
+          inputs: 'Estados de Input',
+          inputLabel: 'Búsqueda',
+          inputPlaceholder: 'Escribí para probar foco y valor...',
+          inputHint: 'Soporta iconos, hints y mensajes de validación accesibles.',
+          errorInputLabel: 'Campo con error',
+          errorInputMessage: 'Ingresá un valor válido.',
+          badgesAndCards: 'Badges y cards anidadas',
+          elevatedCardNote: 'Card elevada con borde y sombra del tema.',
+        },
+        spotlight: {
+          primitivesTitle: 'Primitivas UI base',
+          primitivesDescription: 'Button, Input, Card, Badge y Stack guiados por tokens.',
+          terminalTitle: 'Terminal interactivo',
+          terminalDescription: 'Widget CLI extensible con historial y comandos propios.',
+          boardTitle: 'Panel protegido',
+          boardDescription: 'Ruta autenticada conectada a Redux Toolkit y RTK Query.',
+          cta: 'Abrir sección',
+        },
+        widgets: {
+          poll: 'Widget de encuesta',
+          groupInput: 'Input agrupado con drag-and-drop',
+        },
+      },
+      widgets: {
         pollExample: {
-          question: 'Qué feature deberíamos construir ahora?',
+          question: '¿Qué feature deberíamos construir ahora?',
           optionA: 'Dashboard de reportes',
           optionB: 'Notificaciones en tiempo real',
           optionC: 'Exportar a CSV',
@@ -272,19 +279,6 @@ export const resources: Resources = {
           groupAAria: 'Nombre del grupo A',
           groupBAria: 'Nombre del grupo B',
         },
-        description:
-          'Usá esta página como punto de partida para módulos privados que necesiten datos autenticados.',
-        name: 'Usuario actual',
-        fallbackUser: 'Usuario autenticado',
-        apiCardTitle: 'URL base REST',
-        apiCardDescription:
-          'Cambiá este valor usando VITE_API_URL para apuntar la plantilla a tu backend.',
-        sessionCardTitle: 'Token de sesión',
-        sessionCardDescription:
-          'El token se persiste en localStorage y se adjunta automáticamente a cada request.',
-        profileRequestFailed: 'Falló la consulta del perfil. Revisá tu endpoint o el token.',
-        refresh: 'Actualizar perfil',
-        refreshing: 'Actualizando...',
       },
     },
   },
