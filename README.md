@@ -1,106 +1,95 @@
 # base-vite
 
-Starter base para arrancar proyectos rápidos con **Vite + React 19**.
+AI-agent-first starter template built with **Vite 8 + React 19 + TypeScript**.
+
+Designed to launch new React applications quickly with minimal boilerplate, strict quality guardrails, clear architectural conventions, and a built-in `/playground` for visual testing.
 
 ## Stack
 
-| Capa                 | Tecnología                                                                                      | Versión |
+| Layer                | Technology                                                                                      | Version |
 | -------------------- | ----------------------------------------------------------------------------------------------- | ------- |
 | Build tool           | [Vite](https://vitejs.dev/)                                                                     | ^8.3.4  |
 | Framework            | [React](https://react.dev/)                                                                     | ^19.3.1 |
 | Router               | [React Router](https://reactrouter.com/)                                                        | ^7.18.4 |
-| Estado global        | [Redux Toolkit](https://redux-toolkit.js.org/)                                                  | ^2.13.0 |
+| Global state         | [Redux Toolkit](https://redux-toolkit.js.org/)                                                  | ^2.13.0 |
 | API / Data fetching  | [RTK Query](https://redux-toolkit.js.org/rtk-query/overview) + [Axios](https://axios-http.com/) | ^1.20.0 |
-| Internacionalización | [i18next](https://www.i18next.com/)                                                             | ^26.5.3 |
-| Animaciones          | [Motion](https://motion.dev/)                                                                   | ^14.4.0 |
-| Estilos              | [Styled Components](https://styled-components.com/)                                             | ^6.6.0  |
-| Iconos               | [React Icons](https://react-icons.github.io/react-icons/)                                       | ^5.7.0  |
+| Internationalization | [i18next](https://www.i18next.com/) (`en` + `es`)                                               | ^26.5.3 |
+| Animation            | [Motion](https://motion.dev/)                                                                   | ^14.4.0 |
+| Styling              | [Styled Components](https://styled-components.com/)                                             | ^6.6.0  |
+| Icons                | [React Icons](https://react-icons.github.io/react-icons/)                                       | ^5.7.0  |
 
-## Comandos disponibles
+## Quick Start
 
 ```bash
-# Instalar dependencias
+# 1. Install dependencies
 pnpm install
 
-# Servidor de desarrollo
+# 2. Configure environment variables
+cp .env.example .env
+
+# 3. Start the dev server
 pnpm dev
-
-# Build de producción
-pnpm build
-
-# Previsualizar build
-pnpm preview
-
-# Linting
-pnpm lint
-pnpm lint:fix
-
-# Formateo
-pnpm format
-pnpm format:check
-
-# Tipos
-pnpm typecheck
-
-# Tests
-pnpm test
-pnpm test:watch
 ```
 
-## Estructura del proyecto
+Open `/playground` in the running app to inspect design tokens, core UI primitives, and general-purpose widgets in both light and dark modes.
 
-```
-src/
-├── app/              # Configuración global (store de Redux, router)
-├── components/       # Componentes React
-│   ├── auth/         # Componentes de autenticación
-│   ├── features/     # Características funcionales (inputs, encuestas, switches)
-│   ├── layout/       # Layout de la aplicación (AppShell)
-│   └── ui/           # Componentes UI genéricos (próximamente)
-├── features/         # Slices de Redux y lógica de dominio
-│   └── auth/         # Autenticación (slice, almacenamiento)
-├── i18n/             # Configuración de i18next y recursos de traducción
-├── pages/            # Páginas de la aplicación
-├── services/         # Clientes de API y capas de servicio
-├── styles/           # Temas, estilos globales y styled-components
-├── test/             # Configuración de tests (setup)
-└── utils/            # Utilidades y configuración de entorno
-```
+## Adapting the Template to a New Project
 
-## Variables de entorno
+1. Edit [`src/config/app.config.ts`](src/config/app.config.ts) to set `name`, `storagePrefix`, `defaultLocale`, and `supportedLocales`.
+2. Update `<title>` in [`index.html`](index.html).
+3. Customize palette, fonts, spacing, and radii in [`src/styles/theme.ts`](src/styles/theme.ts).
+4. Point `VITE_API_URL` / `VITE_API_PROXY_TARGET` in `.env` to your backend.
 
-Crea un archivo `.env` basado en `.env.example`:
+## Available Commands
 
 ```bash
-cp .env.example .env
+pnpm dev           # Start Vite dev server
+pnpm build         # Production build
+pnpm preview       # Preview production build
+pnpm lint          # Run ESLint
+pnpm lint:fix      # Run ESLint with auto-fix
+pnpm format        # Format files with Prettier
+pnpm format:check  # Check formatting with Prettier
+pnpm typecheck     # Run TypeScript compiler check
+pnpm test          # Run Vitest unit tests once
+pnpm test:watch    # Run Vitest in watch mode
+pnpm verify        # Full CI check: lint + format:check + typecheck + test + build
 ```
 
-| Variable                | Descripción                          | Valor por defecto       |
-| ----------------------- | ------------------------------------ | ----------------------- |
-| `VITE_API_URL`          | URL base de la API REST              | `/api/v1` (dev)         |
-| `VITE_API_PROXY_TARGET` | Target del proxy de Vite para `/api` | `http://localhost:8000` |
+## Project Structure
 
-## Calidad de código
+```text
+src/
+├── app/                 # Store factory (createAppStore), typed hooks, React Router config
+├── components/
+│   ├── auth/            # AuthFormCard and RequireAuth route guard
+│   ├── layout/          # AppShell and ErrorBoundary / RouteErrorFallback
+│   ├── switches/        # LanguageSwitcher and ThemeChanger
+│   ├── ui/              # Core token-driven primitives (Badge, Button, Card, Input, Stack)
+│   └── widgets/         # Optional plug-and-play widgets (Terminal, SpotlightCardGrid, PollDemo, GroupInputBoard)
+├── config/              # Central project configuration (app.config.ts)
+├── features/            # Domain Redux slices and storage helpers (auth/)
+├── hooks/               # Reusable hooks (usePlayback)
+├── i18n/                # i18next initialization and en/es translation resources
+├── pages/               # Route pages (HomePage, PlaygroundPage, DashboardPage, LoginPage, SignInPage, NotFoundPage)
+├── services/            # Axios client, shared baseApi, and injected RTK Query endpoints
+├── styles/              # Theme tokens (light/dark), GlobalStyles, typography, AppThemeProvider
+├── test/                # Vitest setup and custom render() wrapper with Redux, Router, Theme, i18n
+└── utils/               # Pure, domain-agnostic utilities
+```
 
-Este proyecto utiliza:
+## Environment Variables
 
-- **TypeScript** para tipado estático (el proyecto es 100 % TypeScript)
-- **ESLint** (flat config) para linting de JS/JSX y TS/TSX
-- **Prettier** para formateo de código
-- **Vitest** + **Testing Library** para pruebas unitarias
-- **Husky** + **lint-staged** para hooks pre-commit
-- **Commitlint** para mensajes de commit convencionales
+| Variable                | Description                             | Default                 |
+| ----------------------- | --------------------------------------- | ----------------------- |
+| `VITE_API_URL`          | Base REST API URL                       | `/api/v1` (dev)         |
+| `VITE_API_PROXY_TARGET` | Vite dev server proxy target for `/api` | `http://localhost:8000` |
 
-El lint usa dos perfiles: uno para `js/jsx` y otro para `ts/tsx` (con `typescript-eslint`), donde las reglas que TypeScript ya cubre (`no-undef`, `no-unused-vars`, `react/prop-types`) se desactivan para evitar falsos positivos.
+## Code Quality & Dependency Policy
 
-### Política de dependencias (pnpm 12)
-
-pnpm 12 aplica por defecto `minimumReleaseAge: 1440` (24 h), que bloquea en el `install` cualquier versión publicada hace menos de un día. Por eso el `pnpm-lock.yaml` fija versiones con al menos 24 h de antigüedad (`vite@8.3.4`, `motion@14.4.0`, `i18next@26.5.3`).
-
-Si al actualizar una dependencia el `install` falla con `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`, la solución correcta es esperar a que la versión cumpla la ventana de 24 h, no desactivar la política.
-
-`pnpm-workspace.yaml` solo se usa para `peerDependencyRules.allowedVersions`, que silencia el aviso de `eslint-plugin-react` y `eslint-plugin-jsx-a11y` por no declarar todavía soporte para ESLint 10 (verificado: las reglas de ambos plugins se ejecutan correctamente).
-
-## Licencia
-
-MIT
+- **AI Agent Rules**: See [`AGENTS.md`](AGENTS.md) for canonical conventions, folder ownership, and task recipes.
+- **Next Steps & Backlog**: See [`ROADMAP.md`](ROADMAP.md) for tracked Playground and widget improvements.
+- **Quality Gates**: TypeScript strict mode, ESLint 10 flat config (`js/jsx` + `ts/tsx` + `jsx-a11y`), Prettier, Vitest + Testing Library, Husky pre-commit (`lint-staged`), and Commitlint (conventional commits).
+- **Commit Convention**: Follow `<type>(<optional-scope>): <imperative lowercase summary>` (`feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `ci`), enforced by Commitlint (`commitlint.config.js`).
+- **pnpm 12 Release Age Policy**: `pnpm 12` enforces `minimumReleaseAge: 1440` (24 hours) by default. If `pnpm install` fails with `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`, wait until the package passes the 24-hour window or select an older version rather than disabling the safeguard.
+- **Workspace Peer Rules**: `pnpm-workspace.yaml` only configures `peerDependencyRules.allowedVersions` for `eslint-plugin-react` and `eslint-plugin-jsx-a11y` compatibility with ESLint 10.
