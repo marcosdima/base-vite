@@ -1,26 +1,26 @@
-# Roadmap & Next Implementation Step
+# Roadmap & Next Implementation Steps
 
-Tracked backlog items for upcoming work on `main`.
+Tracked milestones and optional future additions for `base-vite` on `main`.
 
-## Next Step: Playground & Widget Polish
+## Completed Milestones
 
-### 1. Categorized Visual Testing Menu in `PlaygroundPage`
+- **AI-Agent-First Foundation**:
+  - `AGENTS.md` with English-only communication/code/docs policy, folder ownership, canonical patterns, and task recipes.
+  - Central project configuration (`src/config/app.config.ts`) and semantic design tokens (`src/styles/theme.ts`).
+  - Shared RTK Query `baseApi`, `createAppStore`, typed Redux hooks (`useAppDispatch`, `useAppSelector`), and unified `src/test/render.tsx`.
+  - One-command CI verification (`pnpm verify`).
+- **Primitive / Hook / Widget Boundary & Categorized Playground**:
+  - Core UI primitives in `src/components/ui/`: `Badge`, `Button`, `Card`, `Input`, `Stack`, and Radix-backed `Tabs`.
+  - Headless state hooks in `src/hooks/`: `usePlayback` and `usePoll`.
+  - Self-contained general-purpose widget in `src/components/widgets/`: `Terminal`.
+  - Removed niche/legacy widgets (`SpotlightCardGrid`, `GroupInputBoard`, `PollDemo`) and documented `@dnd-kit` / `motion` `Reorder` for drag-and-drop needs.
+  - Categorized `PlaygroundPage` (`/playground`) with `Tabs` for inspecting **UI Primitives**, **Design Tokens**, **Headless Hooks**, and **Widgets**.
 
-- **Target**: `src/pages/PlaygroundPage/`
-- **Goal**: Replace the single vertical scroll listing everything at once with a categorized navigation menu (tabs or sidebar selector, using `@radix-ui/react-tabs` per `AGENTS.md`) so users can select which category or component to inspect (`Design Tokens`, `UI Primitives`, `Widgets`, or individual widget views).
+## Potential Future Additions (On Demand)
 
-### 2. Fix `SpotlightCardGrid` Neon Sliding Shadow Bug
-
-- **Target**: `src/components/widgets/SpotlightCardGrid/`
-- **Observed bug**: Moving between the 2nd and 3rd cards animates the neon sliding backdrop smoothly, but moving back to the 1st card jumps instantaneously instead of animating.
-- **Goal**: Ensure the sliding shadow transition animates smoothly across all card indices, including transitions back to index `0`.
-
-### 3. Improve `PollDemo` Visuals & Interaction Details
-
-- **Target**: `src/components/widgets/PollDemo/`
-- **Goal**: Add richer visual feedback and details to make the poll widget engaging out of the box (e.g., animated percentage fill bars per option, total vote count, clear open/closed badge, and refined option layout using `@/components/ui` primitives).
-
-### 4. Improve `GroupInputBoard` Drag-and-Drop Continuity
-
-- **Target**: `src/components/widgets/GroupInputBoard/`
-- **Goal**: Add smooth visual continuity when dragging and moving items between containers (e.g., active drag state, target container highlight on drag-over, and motion layout continuity across group lists).
+1. **Additional Radix UI Primitives (`src/components/ui/`)**:
+   - Add `Dialog` (`@radix-ui/react-dialog`) or `Tooltip` (`@radix-ui/react-tooltip`) wrappers when modal or tooltip patterns are needed across projects.
+2. **Toast / Notification Feedback**:
+   - Integrate a lightweight toast system or token-styled alert primitive for global async feedback.
+3. **Form Validation Recipe**:
+   - Document or provide a lightweight form validation hook/helper composing `Input` error states cleanly.

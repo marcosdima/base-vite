@@ -2,21 +2,21 @@
 
 AI-agent-first starter template built with **Vite 8 + React 19 + TypeScript**.
 
-Designed to launch new React applications quickly with minimal boilerplate, strict quality guardrails, clear architectural conventions, and a built-in `/playground` for visual testing.
+Designed to launch new React applications quickly with minimal boilerplate, strict quality guardrails, clear architectural conventions, and a categorized `/playground` for visual testing.
 
 ## Stack
 
-| Layer                | Technology                                                                                      | Version |
-| -------------------- | ----------------------------------------------------------------------------------------------- | ------- |
-| Build tool           | [Vite](https://vitejs.dev/)                                                                     | ^8.3.4  |
-| Framework            | [React](https://react.dev/)                                                                     | ^19.3.1 |
-| Router               | [React Router](https://reactrouter.com/)                                                        | ^7.18.4 |
-| Global state         | [Redux Toolkit](https://redux-toolkit.js.org/)                                                  | ^2.13.0 |
-| API / Data fetching  | [RTK Query](https://redux-toolkit.js.org/rtk-query/overview) + [Axios](https://axios-http.com/) | ^1.20.0 |
-| Internationalization | [i18next](https://www.i18next.com/) (`en` + `es`)                                               | ^26.5.3 |
-| Animation            | [Motion](https://motion.dev/)                                                                   | ^14.4.0 |
-| Styling              | [Styled Components](https://styled-components.com/)                                             | ^6.6.0  |
-| Icons                | [React Icons](https://react-icons.github.io/react-icons/)                                       | ^5.7.0  |
+| Layer                   | Technology                                                                                            | Version |
+| ----------------------- | ----------------------------------------------------------------------------------------------------- | ------- |
+| Build tool              | [Vite](https://vitejs.dev/)                                                                           | ^8.3.4  |
+| Framework               | [React](https://react.dev/)                                                                           | ^19.3.1 |
+| Router                  | [React Router](https://reactrouter.com/)                                                              | ^7.18.4 |
+| Global state            | [Redux Toolkit](https://redux-toolkit.js.org/)                                                        | ^2.13.0 |
+| API / Data fetching     | [RTK Query](https://redux-toolkit.js.org/rtk-query/overview) + [Axios](https://axios-http.com/)       | ^1.20.0 |
+| Internationalization    | [i18next](https://www.i18next.com/) (`en` + `es`)                                                     | ^26.5.3 |
+| Animation               | [Motion](https://motion.dev/)                                                                         | ^14.4.0 |
+| Styling & Accessible UI | [Styled Components](https://styled-components.com/) + [Radix UI](https://www.radix-ui.com/primitives) | ^6.6.0  |
+| Icons                   | [React Icons](https://react-icons.github.io/react-icons/)                                             | ^5.7.0  |
 
 ## Quick Start
 
@@ -31,7 +31,7 @@ cp .env.example .env
 pnpm dev
 ```
 
-Open `/playground` in the running app to inspect design tokens, core UI primitives, and general-purpose widgets in both light and dark modes.
+Open `/playground` in the running app to switch between **UI Primitives**, **Design Tokens**, **Headless Hooks**, and **Widgets** in both light and dark modes.
 
 ## Adapting the Template to a New Project
 
@@ -65,11 +65,11 @@ src/
 │   ├── auth/            # AuthFormCard and RequireAuth route guard
 │   ├── layout/          # AppShell and ErrorBoundary / RouteErrorFallback
 │   ├── switches/        # LanguageSwitcher and ThemeChanger
-│   ├── ui/              # Core token-driven primitives (Badge, Button, Card, Input, Stack)
-│   └── widgets/         # Optional plug-and-play widgets (Terminal, SpotlightCardGrid, PollDemo, GroupInputBoard)
+│   ├── ui/              # Core token-driven primitives (Badge, Button, Card, Input, Stack, Tabs)
+│   └── widgets/         # Optional plug-and-play widgets (Terminal)
 ├── config/              # Central project configuration (app.config.ts)
 ├── features/            # Domain Redux slices and storage helpers (auth/)
-├── hooks/               # Reusable hooks (usePlayback)
+├── hooks/               # Reusable headless hooks (usePlayback, usePoll)
 ├── i18n/                # i18next initialization and en/es translation resources
 ├── pages/               # Route pages (HomePage, PlaygroundPage, DashboardPage, LoginPage, SignInPage, NotFoundPage)
 ├── services/            # Axios client, shared baseApi, and injected RTK Query endpoints
@@ -88,7 +88,7 @@ src/
 ## Code Quality & Dependency Policy
 
 - **AI Agent Rules**: See [`AGENTS.md`](AGENTS.md) for canonical conventions, folder ownership, and task recipes.
-- **Next Steps & Backlog**: See [`ROADMAP.md`](ROADMAP.md) for tracked Playground and widget improvements.
+- **Next Steps & Backlog**: See [`ROADMAP.md`](ROADMAP.md) for tracked backlog and future enhancements.
 - **Quality Gates**: TypeScript strict mode, ESLint 10 flat config (`js/jsx` + `ts/tsx` + `jsx-a11y`), Prettier, Vitest + Testing Library, Husky pre-commit (`lint-staged`), and Commitlint (conventional commits).
 - **Commit Convention**: Follow `<type>(<optional-scope>): <imperative lowercase summary>` (`feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `ci`), enforced by Commitlint (`commitlint.config.js`).
 - **pnpm 12 Release Age Policy**: `pnpm 12` enforces `minimumReleaseAge: 1440` (24 hours) by default. If `pnpm install` fails with `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`, wait until the package passes the 24-hour window or select an older version rather than disabling the safeguard.
