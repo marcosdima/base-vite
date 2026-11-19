@@ -88,6 +88,7 @@ src/
 ## Code Quality & Dependency Policy
 
 - **AI Agent Rules**: See [`AGENTS.md`](AGENTS.md) for canonical conventions, folder ownership, and task recipes.
+- **Detailed Element Documentation**: See [`docs/INDEX.md`](docs/INDEX.md) for categorized documentation of every core subsystem, UI primitive, headless hook, widget, and utility.
 - **Next Steps & Backlog**: See [`ROADMAP.md`](ROADMAP.md) for tracked backlog and future enhancements.
 - **Quality Gates**: TypeScript strict mode, ESLint 10 flat config (`js/jsx` + `ts/tsx` + `jsx-a11y`), Prettier, Vitest + Testing Library, Husky pre-commit (`lint-staged`), and Commitlint (conventional commits).
 - **Commit Convention**: Follow `<type>(<optional-scope>): <imperative lowercase summary>` (`feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `ci`), enforced by Commitlint (`commitlint.config.js`).

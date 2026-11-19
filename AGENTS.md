@@ -22,13 +22,15 @@ Guidelines for AI coding agents working in this repository.
   - Allowed types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `ci`, `style`, `perf`, `build`, `revert`.
   - Keep commits atomic and scoped by concern (docs/tooling, core plumbing, UI primitives, hooks, widgets, pages).
 
-## 3. Architecture & Folder Ownership
+## 3. Architecture, Folder Ownership & Documentation Lookup
+
+- **Documentation Router (`docs/INDEX.md`)**: Before scanning `src/` to learn how an existing subsystem, primitive, hook, widget, or utility works, read [`docs/INDEX.md`](docs/INDEX.md) and open only the specific doc file needed for your task. Whenever you add or modify an element, update its entry in `docs/`.
 
 Follow the strict three-tier boundary between **UI Primitives**, **Headless Hooks**, and **Widgets**:
 
-- **UI Primitive (`src/components/ui/`)**: Low-level visual building blocks bound to `theme.ts` (`Button`, `Input`, `Card`, `Badge`, `Stack`, `Tabs`). Zero domain logic.
-- **Headless Hook (`src/hooks/`)**: Reusable state and behavior logic with **zero UI assumptions** (`usePlayback`, `usePoll`), so any feature can render it with custom layouts, colors, or primitives.
-- **Widget (`src/components/widgets/`)**: Only for opinionated, self-contained UI + behavior modules where the visual metaphor itself is the component (`Terminal`).
+- **UI Primitive (`src/components/ui/`)**: Low-level visual building blocks bound to `theme.ts` (`Button`, `Input`, `Card`, `Badge`, `Stack`, `Tabs`). Zero domain logic. See [`docs/ui/README.md`](docs/ui/README.md).
+- **Headless Hook (`src/hooks/`)**: Reusable state and behavior logic with **zero UI assumptions** (`usePlayback`, `usePoll`), so any feature can render it with custom layouts, colors, or primitives. See [`docs/hooks/README.md`](docs/hooks/README.md).
+- **Widget (`src/components/widgets/`)**: Only for opinionated, self-contained UI + behavior modules where the visual metaphor itself is the component (`Terminal`). See [`docs/widgets/README.md`](docs/widgets/README.md) for qualification rules and anti-patterns.
 
 | Path                       | Purpose                                                                                                      | Rules                                                                     |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
